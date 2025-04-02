@@ -56,10 +56,9 @@ async function startServer() {
       
       const superhero = await db.collection('SuperHeros').findOne({ id: id });
       
-      while (!superhero) {
-        console.log(`Superhéros avec ID ${id} non trouvé, génération d'un nouvel ID`);
-        id = Math.floor(Math.random() * 563) + 1;
-        superhero = await db.collection('SuperHeros').findOne({ id: id });
+      if (!superhero) {
+        console.log(`Superhéros avec ID ${id} non trouvé`);
+        return res.status(404).json(null);
       }
       
       res.json(superhero);
