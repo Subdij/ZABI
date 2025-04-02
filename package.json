@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "express": "^5.1.0",
+    "mangodb": "^1.0.0",
     "mongodb": "^6.15.0"
   },
   "scripts": {
@@ -12,5 +13,8 @@
   "main": "server.js",
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.14.0"
+  }
 }
