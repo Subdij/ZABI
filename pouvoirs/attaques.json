@@ -1,0 +1,62 @@
+[
+    {
+        "name" : "Stratégie imparable", 
+        "pouvoir" : "Intelligence",
+        "modificateur" : 1.1
+    },
+    {
+        "name" : "Feinte déstabilisante", 
+        "pouvoir" : "Intelligence",
+        "modificateur" : 1.05
+    },
+    {
+        "name" : "Coup de poing titanesque ", 
+        "pouvoir" : "Force",
+        "modificateur" : 1.5
+    },
+    {
+        "name" : "Coup de pied écrasant", 
+        "pouvoir" : "Force",
+        "modificateur" : 1.4
+    },
+    {
+        "name" : "Frappe éclair", 
+        "pouvoir" : "Vitesse",
+        "modificateur" : 1.3
+    },
+    {
+        "name" : "Rafale de coups", 
+        "pouvoir" : "Vitesse",
+        "modificateur" : 1.2
+    },
+    {
+        "name" : "Frappe éclair", 
+        "pouvoir" : "Durabilité",
+        "modificateur" : 1.4
+    },
+    {
+        "name" : "Résistance offensive", 
+        "pouvoir" : "Durabilité",
+        "modificateur" : 1.3
+    },
+    {
+        "name" : "Rayon laser", 
+        "pouvoir" : "Puissance",
+        "modificateur" : 1.7
+    },
+    {
+        "name" : "Explosion télékinétique", 
+        "pouvoir" : "Puissance",
+        "modificateur" : 1.6
+    },
+    {
+        "name" : "Combo martial", 
+        "pouvoir" : "Combat",
+        "modificateur" : 1.3
+    },
+    {
+        "name" : "Projection au sol", 
+        "pouvoir" : "Combat",
+        "modificateur" : 1.2
+    }
+]
