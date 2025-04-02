@@ -79,7 +79,7 @@ async function startServer() {
   });
 
   app.listen(port, () => {
-    console.log("Serveur démarré sur http://localhost:${port}");
+    console.log("Serveur démarré sur http://localhost:3000");
   });
   list_attack();
 }
