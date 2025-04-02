@@ -50,7 +50,7 @@ async function startServer() {
   app.get('/api/superheros/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      if (isNaN(id) || id < 1 || id > 563) {
+      if (isNaN(id) || id < 1 || id > 731) {
         return res.status(400).json({ message: "ID invalide" });
       }
       
