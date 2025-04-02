@@ -182,7 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // Vider la grille de statistiques
-        heroImage.src = "https://cdn.jsdelivr.net/gh/rtomczak/superhero-api@0.3.0/api/images/sm/" + hero.slug + ".jpg";
         powerstats.innerHTML = '';
         attackContainer.innerHTML = ''; // Vider le conteneur des attaques
 
