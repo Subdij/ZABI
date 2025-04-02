@@ -1,6 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const battleBtn = document.getElementById('battle-btn');
+    // Récupération des éléments DOM
+    const welcomeScreen = document.getElementById('welcome-screen');
+    const playBtn = document.getElementById('play-btn');
+    const playersInput = document.getElementById('players-input');
+    const startBattleBtn = document.getElementById('start-battle');
+    const player1NameInput = document.getElementById('player1-name');
+    const player2NameInput = document.getElementById('player2-name');
+    const player1Display = document.getElementById('player1-display');
+    const player2Display = document.getElementById('player2-display');
     const battleContainer = document.getElementById('battle-container');
+    
+    // Variables pour stocker les noms des joueurs
+    let player1Name = "";
+    let player2Name = "";
     
     // Ensemble pour stocker les IDs déjà utilisés
     const usedIds = new Set();
@@ -9,13 +21,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function getRandomId() {
         let id;
         // Si tous les IDs ont été utilisés, réinitialiser l'ensemble
-        if (usedIds.size >= 563) {
+        if (usedIds.size >= 731) {
             usedIds.clear();
         }
         
         // Générer un ID aléatoire jusqu'à ce qu'on en trouve un non utilisé
         do {
-            id = Math.floor(Math.random() * 563) + 1;
+            id = Math.floor(Math.random() * 731) + 1;
         } while (usedIds.has(id));
         
         // Ajouter l'ID à l'ensemble des IDs utilisés
@@ -60,6 +72,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return hero;
     }
     
+    // Correspondance entre caractéristiques et images d'icônes
+    const statImages = {
+        'intelligence': 'intelligence.png',
+        'strength': 'strength.png',
+        'speed': 'speed.png',
+        'durability': 'durability.png',
+        'power': 'power.png',
+        'combat': 'combat.png'
+    };
+    
     // Fonction pour afficher les informations d'un héros dans une zone spécifique
     function displayHeroInBattle(hero, index) {
         const heroName = document.getElementById(`hero-name-${index}`);
@@ -99,6 +121,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const statItem = document.createElement('div');
                 statItem.className = 'stat-item';
                 
+                // Créer et ajouter l'icône en utilisant une image
+                const iconImg = document.createElement('img');
+                iconImg.src = `/img/${statImages[key] || 'default.png'}`; // Image par défaut si la clé n'est pas trouvée
+                iconImg.alt = key.charAt(0).toUpperCase() + key.slice(1);
+                iconImg.classList.add('stat-icon-img');
+                statItem.appendChild(iconImg);
+                
                 const statName = document.createElement('span');
                 statName.className = 'stat-name';
                 statName.textContent = `${key.charAt(0).toUpperCase() + key.slice(1)}: `;
@@ -127,8 +156,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Gestionnaire d'événement pour le bouton de combat
-    battleBtn.addEventListener('click', async () => {
+    // Étape 1: Clic sur le bouton Play
+    playBtn.addEventListener('click', () => {
+        welcomeScreen.style.display = 'none';
+        playersInput.style.display = 'block';
+    });
+    
+    // Étape 2: Confirmation des pseudos et début du combat
+    startBattleBtn.addEventListener('click', async () => {
+        // Récupérer et nettoyer les pseudos
+        player1Name = player1NameInput.value.trim() || "Joueur 1";
+        player2Name = player2NameInput.value.trim() || "Joueur 2";
+        
+        // Cacher le formulaire
+        playersInput.style.display = 'none';
+        
+        // Mise à jour des noms des joueurs dans l'interface
+        player1Display.textContent = player1Name;
+        player2Display.textContent = player2Name;
+        
         // Préparer les zones des héros pour l'affichage
         document.getElementById('hero-name-1').textContent = 'Chargement...';
         document.getElementById('hero-name-2').textContent = 'Chargement...';
@@ -137,9 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Afficher le conteneur de bataille
         battleContainer.style.display = 'flex';
-        
-        // Masquer le bouton après le clic
-        battleBtn.style.display = 'none';
         
         // Récupérer deux héros avec la fonction retry
         const [hero1, hero2] = await Promise.all([

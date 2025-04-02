@@ -5,16 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZABI - Duel de Superhéros</title>
     <link rel="stylesheet" href="/css/style.css">
+    <!-- Ajout de Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <h1>Duel de Superhéros</h1>
-        <button id="battle-btn">Commencer le Duel</button>
         
+        <!-- Étape 1: Écran d'accueil avec bouton Play -->
+        <div id="welcome-screen">
+            <button id="play-btn" class="btn-primary">Play</button>
+        </div>
+        
+        <!-- Étape 2: Formulaire combiné pour les deux joueurs -->
+        <div id="players-input" class="players-form" style="display: none;">
+            <h2>Entrez vos pseudos</h2>
+            
+            <div class="player-row">
+                <div class="player-field">
+                    <label for="player1-name">Joueur 1</label>
+                    <input type="text" id="player1-name" placeholder="Pseudo joueur 1" class="player-name-input">
+                </div>
+                
+                <div class="player-field">
+                    <label for="player2-name">Joueur 2</label>
+                    <input type="text" id="player2-name" placeholder="Pseudo joueur 2" class="player-name-input">
+                </div>
+            </div>
+            
+            <button id="start-battle" class="btn-confirm">Commencer le Combat</button>
+        </div>
+        
+        <!-- Étape 3: Combat de superhéros -->
         <div class="battle-container" id="battle-container">
             <!-- Héros gauche (Joueur 1) -->
             <div class="hero-info" id="hero-info-1">
-                <div class="player-title">Joueur 1</div>
+                <div class="player-title" id="player1-display">Joueur 1</div>
                 <h2 id="hero-name-1">Nom du Superhéros</h2>
                 <img id="hero-image-1" src="" alt="Image du Superhéros" class="hero-image">
                 
@@ -32,7 +58,7 @@
             
             <!-- Héros droit (Joueur 2) -->
             <div class="hero-info" id="hero-info-2">
-                <div class="player-title">Joueur 2</div>
+                <div class="player-title" id="player2-display">Joueur 2</div>
                 <h2 id="hero-name-2">Nom du Superhéros</h2>
                 <img id="hero-image-2" src="" alt="Image du Superhéros" class="hero-image">
                 

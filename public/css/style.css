@@ -40,6 +40,49 @@ button:hover {
     display: none;
 }
 
+/* Styles pour les étapes de saisie des pseudos */
+.player-input {
+    background-color: white;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    max-width: 500px;
+    width: 100%;
+}
+
+.player-name-input {
+    width: 100%;
+    padding: 12px;
+    margin: 15px 0;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.btn-primary {
+    background-color: #4361ee;
+    padding: 15px 40px;
+    font-size: 20px;
+}
+
+.btn-primary:hover {
+    background-color: #3a56d4;
+}
+
+.btn-confirm {
+    background-color: #4CAF50;
+    padding: 12px 30px;
+    font-size: 16px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.btn-confirm:hover {
+    background-color: #45a049;
+}
+
 .hero-info {
     /*display: flex;
     flex-direction: column;
@@ -81,15 +124,35 @@ h2 {
     gap: 10px;
 }
 
+/* Styles pour les icônes de statistiques */
 .stat-item {
     background-color: #f9f9f9;
     padding: 10px;
     border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.stat-icon {
+    margin-right: 8px;
+    width: 20px;
+    text-align: center;
+    color: #3a56d4;
+}
+
+/* Style pour l'icône image de puissance */
+.stat-icon-img {
+    width: 50px;
+    height: 50px;
+    margin-right: 8px;
+    vertical-align: middle;
+    object-fit: contain;
 }
 
 .stat-name {
     font-weight: bold;
     color: #555;
+    margin-right: 5px;
 }
 
 .loading {
