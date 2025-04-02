@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const heroName = document.getElementById(`hero-name-${index}`);
         const heroImage = document.getElementById(`hero-image-${index}`);
         const powerstats = document.getElementById(`powerstats-${index}`);
+        const attackContainer = document.getElementById(`attack-container-${index}`);
         
         if (!hero) {
             heroName.textContent = "Erreur de chargement";
@@ -73,10 +74,26 @@ document.addEventListener('DOMContentLoaded', () => {
         
         heroName.textContent = hero.name;
         heroImage.src = "https://cdn.jsdelivr.net/gh/rtomczak/superhero-api@0.3.0/api/images/sm/" + hero.slug + ".jpg";
-        // Vider la grille de statistiques
         powerstats.innerHTML = '';
-        
-        // Ajouter chaque statistique à la grille
+        attackContainer.innerHTML = ''; // Vider le conteneur des attaques
+
+        // Charger et afficher les attaques
+        fetchAttacks().then(attacks => {
+            const select = document.createElement('select');
+            select.id = `attack-select-${index}`;
+            select.className = 'attack-select';
+
+            attacks.forEach(attack => {
+                const option = document.createElement('option');
+                option.value = attack.name;
+                option.textContent = `${attack.name} (${attack.pouvoir}, Modificateur: ${attack.modificateur})`;
+                select.appendChild(option);
+            });
+
+            attackContainer.appendChild(select);
+        });
+
+        // Ajouter les caractéristiques
         if (hero.powerstats) {
             Object.entries(hero.powerstats).forEach(([key, value]) => {
                 const statItem = document.createElement('div');
@@ -93,6 +110,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 statItem.appendChild(statValue);
                 powerstats.appendChild(statItem);
             });
+        }
+    }
+
+    // Fonction pour charger les attaques depuis la nouvelle route API
+    async function fetchAttacks() {
+        try {
+            const response = await fetch('/api/attaques'); // Utilisation de la nouvelle route API
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Erreur lors du chargement des attaques:', error);
+            return [];
         }
     }
     

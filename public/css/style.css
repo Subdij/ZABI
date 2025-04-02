@@ -41,12 +41,25 @@ button:hover {
 }
 
 .hero-info {
+    /*display: flex;
+    flex-direction: column;
+    align-items: flex-start;*/
     background-color: white;
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     text-align: left;
     width: 45%;
+}
+
+.hero-image {
+    max-width: 100%;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+.powerstats {
+    margin-top: 20px;
 }
 
 .vs {
@@ -90,4 +103,42 @@ h2 {
     padding: 8px;
     border-radius: 5px 5px 0 0;
     margin-bottom: 10px;
+}
+
+.attack-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Deux colonnes comme les caractéristiques */
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.attack-item {
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.attack-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    text-align: left;
+}
+
+.attack-select {
+    grid-column: span 2; /* Le menu déroulant occupe toute la largeur */
+    width: 100%;
+    padding: 10px; /* Augmentez l'espace intérieur pour un meilleur confort */
+    font-size: 16px; /* Texte légèrement plus grand */
+    font-weight: bold; /* Texte en gras pour plus de visibilité */
+    color: #333; /* Couleur du texte */
+    border-radius: 8px; /* Bordures arrondies */
+    background-color: #f9f9f9; /* Fond clair */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère */
+    transition: all 0.3s ease; /* Transition pour les interactions */
+    cursor: pointer; /* Curseur en mode "pointer" */
 }
