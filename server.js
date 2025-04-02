@@ -175,6 +175,27 @@ async function startServer() {
     }
   });
 
+  // Nouvelle route pour récupérer les attaques
+  app.get('/api/attaques', (req, res) => {
+    const fs = require('fs');
+    const filePath = path.join(__dirname, 'pouvoirs', 'attaques.json');
+
+    fs.readFile(filePath, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Erreur lors de la lecture du fichier attaques.json:', err);
+            return res.status(500).json({ message: "Erreur lors de la récupération des attaques" });
+        }
+
+        try {
+            const attacks = JSON.parse(data);
+            res.json(attacks);
+        } catch (parseError) {
+            console.error('Erreur lors de l\'analyse du fichier attaques.json:', parseError);
+            res.status(500).json({ message: "Erreur lors de l'analyse des attaques" });
+        }
+    });
+  });
+
   app.listen(port, () => {
     console.log("Serveur démarré sur http://localhost:3000");
   });
