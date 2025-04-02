@@ -11,7 +11,7 @@ app.use(express.json());
 // URL de connexion MongoDB corrigée
 // Le format correct est mongodb://localhost:27017/ZABI
 // La collection est spécifiée séparément lors des requêtes
-const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/TP_01';
+const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/ZABI';
 
 // Connexion à MongoDB
 async function connectToMongoDB() {
