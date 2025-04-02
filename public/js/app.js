@@ -228,21 +228,19 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
-
-    // Fonction pour charger les attaques depuis la nouvelle route API
-    async function fetchAttacks() {
-        try {
-            const response = await fetch('/api/attaques'); // Utilisation de la nouvelle route API
-            if (!response.ok) {
-                throw new Error(`Erreur HTTP: ${response.status}`);
+        // Fonction pour charger les attaques depuis la nouvelle route API
+        async function fetchAttacks() {
+            try {
+                const response = await fetch('/api/attaques'); // Utilisation de la nouvelle route API
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Erreur lors du chargement des attaques:', error);
+                return [];
             }
-            return await response.json();
-        } catch (error) {
-            console.error('Erreur lors du chargement des attaques:', error);
-            return [];
         }
-    }
-    
     // Étape 1: Clic sur le bouton Play
     playBtn.addEventListener('click', () => {
         welcomeScreen.style.display = 'none';

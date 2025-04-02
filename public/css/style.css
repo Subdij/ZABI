@@ -196,17 +196,6 @@ h2 {
     text-align: left;
 }
 
-.hero-image {
-    width: 160px;
-    height: 240px;
-    object-fit: cover;
-}
-
-@media (max-width: 600px) {
-    .player-field {
-        width: 100%;
-    }
-
 .attack-select {
     grid-column: span 2; /* Le menu déroulant occupe toute la largeur */
     width: 100%;
@@ -219,4 +208,48 @@ h2 {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère */
     transition: all 0.3s ease; /* Transition pour les interactions */
     cursor: pointer; /* Curseur en mode "pointer" */
+}
+
+/* Styles pour le formulaire combiné */
+.players-form {
+    background-color: white;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    max-width: 700px;
+    width: 100%;
+}
+
+.player-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.player-field {
+    width: 48%;
+    min-width: 250px;
+    margin-bottom: 15px;
+}
+
+.player-field label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+    text-align: left;
+}
+
+.hero-image {
+    width: 160px;
+    height: 240px;
+    object-fit: cover;
+}
+
+@media (max-width: 600px) {
+    .player-field {
+        width: 100%;
+    }
 }
