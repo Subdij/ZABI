@@ -24,20 +24,40 @@ document.addEventListener('DOMContentLoaded', () => {
         return id;
     }
     
-    // Fonction pour récupérer les données d'un superhéros
-    async function fetchHero(id) {
-        try {
-            const response = await fetch(`/api/superheros/${id}`);
+    // Fonction pour récupérer les données d'un superhéros avec retry
+    async function fetchHeroWithRetry(maxAttempts = 5) {
+        let attempts = 0;
+        let hero = null;
+        
+        while (!hero && attempts < maxAttempts) {
+            attempts++;
+            const id = getRandomId();
+            console.log(`Tentative ${attempts} avec ID ${id}`);
             
-            if (!response.ok) {
-                throw new Error(`Erreur HTTP: ${response.status}`);
+            try {
+                const response = await fetch(`/api/superheros/${id}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+                
+                hero = await response.json();
+                
+                // Si le héros est null (non trouvé), on réessaie
+                if (!hero) {
+                    console.log(`Héros avec ID ${id} non trouvé, génération d'un nouvel ID...`);
+                    continue;
+                }
+            } catch (error) {
+                console.error('Erreur lors de la récupération du superhéros:', error);
             }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Erreur lors de la récupération du superhéros:', error);
-            return null;
         }
+        
+        if (!hero) {
+            console.error('Échec après plusieurs tentatives de récupération d\'un héros');
+        }
+        
+        return hero;
     }
     
     // Fonction pour afficher les informations d'un héros dans une zone spécifique
@@ -90,14 +110,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Masquer le bouton après le clic
         battleBtn.style.display = 'none';
         
-        // Générer deux ID aléatoires différents et récupérer les héros
-        const id1 = getRandomId();
-        const id2 = getRandomId();
-        
-        // Récupérer les deux héros simultanément
+        // Récupérer deux héros avec la fonction retry
         const [hero1, hero2] = await Promise.all([
-            fetchHero(id1),
-            fetchHero(id2)
+            fetchHeroWithRetry(),
+            fetchHeroWithRetry()
         ]);
         
         // Afficher les informations des deux héros
