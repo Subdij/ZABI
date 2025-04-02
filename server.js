@@ -4,7 +4,6 @@ const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 3000;
-
 // Configuration pour les fichiers statiques
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
@@ -81,8 +80,22 @@ async function startServer() {
   });
 
   app.listen(port, () => {
-    console.log(`Serveur démarré sur http://localhost:${port}`);
+    console.log("Serveur démarré sur http://localhost:${port}");
   });
+  list_attack();
+}
+
+
+function list_attack(){
+    const fs = require('fs');
+
+    fs.readFile('pouvoirs/attaques.json', function(err, data) { 
+
+        if (err) throw err; 
+
+        attacks = JSON.parse(data); 
+        console.log("Liste des attaques :" + JSON.stringify(attacks)); 
+    }); 
 }
 
 startServer();
