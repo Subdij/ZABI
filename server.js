@@ -9,8 +9,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
 // URL de connexion MongoDB corrigée
-// Le format correct est mongodb://localhost:27017/ZABI
-// La collection est spécifiée séparément lors des requêtes
 const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/ZABI';
 
 // Connexion à MongoDB
@@ -33,6 +31,15 @@ async function connectToMongoDB() {
 // Démarrage du serveur après connexion à MongoDB
 async function startServer() {
   const { client, db } = await connectToMongoDB();
+  
+  // S'assurer que la collection InvalidID existe
+  try {
+    await db.createCollection('InvalidID');
+    console.log('Collection InvalidID vérifiée/créée');
+  } catch (err) {
+    // La collection existe probablement déjà, ce n'est pas une erreur critique
+    console.log('Collection InvalidID existe déjà');
+  }
   
   // Route pour accéder à la collection SuperHeros
   app.get('/api/SuperHeros', async (req, res) => {
@@ -68,6 +75,96 @@ async function startServer() {
     }
   });
 
+  // Endpoint pour récupérer la liste des IDs invalides
+  app.get('/api/InvalidID', async (req, res) => {
+    try {
+      const InvalidIDDocuments = await db.collection('InvalidID').find().toArray();
+      // Extraire uniquement les IDs des documents
+      const InvalidID = InvalidIDDocuments.map(doc => doc.id);
+      console.log(`Envoi de ${InvalidID.length} IDs invalides`);
+      res.json(InvalidID);
+    } catch (err) {
+      console.error('Erreur lors de la récupération des IDs invalides:', err);
+      res.status(500).json({ message: "Erreur lors de la récupération des IDs invalides" });
+    }
+  });
+
+  // Endpoint pour ajouter un nouvel ID invalide - version améliorée
+  app.post('/api/InvalidID', async (req, res) => {
+    try {
+      console.log(`Requête reçue pour ajouter un ID invalide:`, req.body);
+      
+      const { id } = req.body;
+      
+      if (!id || isNaN(Number(id)) || id < 1 || id > 731) {
+        console.error(`ID invalide reçu:`, id);
+        return res.status(400).json({ message: "ID invalide", received: id });
+      }
+      
+      const numericId = Number(id);
+      console.log(`Traitement de l'ID invalide ${numericId}...`);
+      
+      try {
+        // Vérification de la connexion à la base de données
+        const collectionNames = await db.listCollections().toArray();
+        console.log(`Collections disponibles:`, collectionNames.map(c => c.name));
+
+        // Vérifier si l'ID existe déjà
+        const existingId = await db.collection('InvalidID').findOne({ id: numericId });
+        
+        if (!existingId) {
+          console.log(`Insertion de l'ID ${numericId} dans la collection InvalidID...`);
+          const result = await db.collection('InvalidID').insertOne({ 
+            id: numericId, 
+            addedAt: new Date(),
+            source: 'client'
+          });
+          console.log(`ID ${numericId} ajouté aux IDs invalides avec succès:`, result);
+          res.status(200).json({ success: true, id: numericId, operation: 'inserted' });
+        } else {
+          console.log(`ID ${numericId} déjà présent dans les IDs invalides`);
+          res.status(200).json({ success: true, id: numericId, operation: 'already_exists' });
+        }
+      } catch (dbError) {
+        console.error(`Erreur de base de données lors de l'ajout de l'ID invalide ${numericId}:`, dbError);
+        res.status(500).json({ message: `Erreur de base de données: ${dbError.message}` });
+      }
+    } catch (err) {
+      console.error('Erreur lors de l\'ajout de l\'ID invalide:', err);
+      res.status(500).json({ message: `Erreur lors de l'ajout de l'ID invalide: ${err.message}` });
+    }
+  });
+
+  // Ajout d'un point de terminaison de test pour vérifier la connexion à MongoDB
+  app.get('/api/db-test', async (req, res) => {
+    try {
+      // Vérifier si la collection InvalidID existe
+      const collections = await db.listCollections().toArray();
+      const hasInvalidIDCollection = collections.some(c => c.name === 'InvalidID');
+      
+      // Tester l'écriture dans la collection InvalidID
+      const testId = 999999; // Un ID de test qui ne sera jamais un ID de héros valide
+      const testResult = await db.collection('InvalidID').updateOne(
+        { id: testId, isTest: true },
+        { $set: { id: testId, isTest: true, lastTested: new Date() } },
+        { upsert: true }
+      );
+      
+      res.json({
+        dbConnected: true,
+        InvalidIDCollectionExists: hasInvalidIDCollection,
+        testWriteSuccessful: testResult.acknowledged,
+        collections: collections.map(c => c.name)
+      });
+    } catch (err) {
+      console.error('Erreur du test de base de données:', err);
+      res.status(500).json({ 
+        dbConnected: false, 
+        error: err.message 
+      });
+    }
+  });
+
   // Conserver la route items pour compatibilité
   app.get('/api/items', async (req, res) => {
     try {
@@ -84,14 +181,11 @@ async function startServer() {
   list_attack();
 }
 
-
 function list_attack(){
     const fs = require('fs');
 
     fs.readFile('pouvoirs/attaques.json', function(err, data) { 
-
         if (err) throw err; 
-
         attacks = JSON.parse(data); 
         console.log("Liste des attaques :" + JSON.stringify(attacks)); 
     }); 

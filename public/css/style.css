@@ -191,6 +191,12 @@ h2 {
     text-align: left;
 }
 
+.hero-image {
+    width: 160px;
+    height: 240px;
+    object-fit: cover;
+}
+
 @media (max-width: 600px) {
     .player-field {
         width: 100%;
