@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(`Tentative ${attempts} avec ID ${id}`);
             
             try {
-                const response = await fetch(`/api/superheros/${id}`);
+                const response = await fetch(`/api/SuperHeros/${id}`);
                 
                 if (!response.ok) {
                     throw new Error(`Erreur HTTP: ${response.status}`);

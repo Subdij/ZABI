@@ -35,11 +35,11 @@ async function startServer() {
   const { client, db } = await connectToMongoDB();
   
   // Route pour accéder à la collection SuperHeros
-  app.get('/api/superheros', async (req, res) => {
+  app.get('/api/SuperHeros', async (req, res) => {
     try {
-      const superheros = await db.collection('SuperHeros').find().toArray();
-      console.log(`Récupération de ${superheros.length} superhéros`);
-      res.json(superheros);
+      const SuperHeros = await db.collection('SuperHeros').find().toArray();
+      console.log(`Récupération de ${SuperHeros.length} superhéros`);
+      res.json(SuperHeros);
     } catch (err) {
       console.error('Erreur lors de la récupération des superhéros:', err);
       res.status(500).json({ message: "Erreur lors de la récupération des superhéros" });
@@ -47,7 +47,7 @@ async function startServer() {
   });
 
   // Nouvelle route pour récupérer un superhéros par ID
-  app.get('/api/superheros/:id', async (req, res) => {
+  app.get('/api/SuperHeros/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id) || id < 1 || id > 731) {
