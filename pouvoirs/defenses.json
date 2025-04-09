@@ -11,42 +11,42 @@
     },
     {
         "name" : "Blocage indestructible", 
-        "pouvoir" : "Force",
+        "pouvoir" : "Strength",
         "modificateur" : 0.3
     },
     {
         "name" : "Parade musclée", 
-        "pouvoir" : "Force",
+        "pouvoir" : "Strength",
         "modificateur" : 0.2
     },
     {
         "name" : "Esquive ultra-rapide", 
-        "pouvoir" : "Vitesse",
+        "pouvoir" : "Speed",
         "modificateur" : 0.5
     },
     {
         "name" : "Déplacement instantané", 
-        "pouvoir" : "Vitesse",
+        "pouvoir" : "Speed",
         "modificateur" : 0.45
     },
     {
         "name" : "Endurance renforcée", 
-        "pouvoir" : "Durabilité",
+        "pouvoir" : "Durability",
         "modificateur" : 0.1
     },
     {
         "name" : "Absorption des chocs", 
-        "pouvoir" : "Durabilité",
+        "pouvoir" : "Durability",
         "modificateur" : 0.2
     },
     {
         "name" : "Bouclier d'énergie", 
-        "pouvoir" : "Puissance",
+        "pouvoir" : "Power",
         "modificateur" : 0.35
     },
     {
         "name" : "Absorption d'énergie", 
-        "pouvoir" : "Puissance",
+        "pouvoir" : "Power",
         "modificateur" : 0.3
     },
     {
