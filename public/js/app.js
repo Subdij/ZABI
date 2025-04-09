@@ -47,21 +47,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const ids = await response.json();
             ids.forEach(id => invalidIds.add(Number(id)));
         } catch (error) {
-            // Conserver uniquement les logs d'erreur critiques
             console.error('Erreur lors du chargement des IDs invalides:', error);
         }
     }
     
     // Fonction pour générer un ID aléatoire valide
     function getRandomId() {
-        // Si presque tous les IDs valides ont été utilisés dans cette session, réinitialiser
         if (usedIds.size > 700 - invalidIds.size) {
             usedIds.clear();
         }
         
         let id;
         let attempts = 0;
-        const maxAttempts = 1000; // Sécurité pour éviter une boucle infinie
+        const maxAttempts = 1000;
         
         do {
             id = Math.floor(Math.random() * 731) + 1;
@@ -72,7 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } while (usedIds.has(id) || invalidIds.has(id));
         
-        // Ajouter l'ID à l'ensemble des IDs utilisés dans cette session
         usedIds.add(id);
         return id;
     }
@@ -109,7 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 resolve(img);
             };
             img.onerror = (err) => {
-                // Uniquement utiliser l'image par défaut sans logger l'erreur
                 imageCache.set(hero.slug, '/img/hero-default.png');
                 reject(err);
             };
@@ -123,12 +119,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const img = new Image();
             img.src = `/img/${icon}`;
         });
-        // Image par défaut aussi
         const defaultImg = new Image();
         defaultImg.src = '/img/default.png';
     }
     
-    // Déclencher le préchargement des icônes
     preloadStatIcons();
     
     // Fonction avec retry pour garantir l'obtention d'un superhéros
@@ -142,7 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         if (hero) {
-            // Précharger l'image dès que nous avons le héros
             preloadHeroImage(hero).catch(() => {});
         }
         
@@ -155,6 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const heroImage = document.getElementById(`hero-image-${index}`);
         const powerstats = document.getElementById(`powerstats-${index}`);
         const attackContainer = document.getElementById(`attack-container-${index}`);
+        const defenseContainer = document.getElementById(`defense-container-${index}`);
         
         if (!hero) {
             heroName.textContent = "Erreur de chargement";
@@ -163,27 +157,23 @@ document.addEventListener('DOMContentLoaded', () => {
         
         heroName.textContent = hero.name;
         
-        // Afficher une image de chargement pendant le chargement de l'image du héros
         heroImage.src = '/img/loading.gif';
         
-        // Si l'image est déjà dans le cache, l'utiliser immédiatement
         if (imageCache.has(hero.slug)) {
             heroImage.src = imageCache.get(hero.slug);
         } else {
-            // Sinon précharger l'image puis l'afficher
             preloadHeroImage(hero)
                 .then(() => {
                     heroImage.src = imageCache.get(hero.slug);
                 })
                 .catch(() => {
-                    // En cas d'erreur, afficher une image par défaut
                     heroImage.src = '/img/hero-default.png';
                 });
         }
         
-        // Vider la grille de statistiques
         powerstats.innerHTML = '';
-        attackContainer.innerHTML = ''; // Vider le conteneur des attaques
+        attackContainer.innerHTML = '';
+        defenseContainer.innerHTML = ''; // Vider le conteneur des défenses
 
         // Charger et afficher les attaques
         fetchAttacks().then(attacks => {
@@ -201,13 +191,28 @@ document.addEventListener('DOMContentLoaded', () => {
             attackContainer.appendChild(select);
         });
 
+        // Charger et afficher les défenses
+        fetchDefenses().then(defenses => {
+            const select = document.createElement('select');
+            select.id = `defense-select-${index}`;
+            select.className = 'defense-select';
+
+            defenses.forEach(defense => {
+                const option = document.createElement('option');
+                option.value = defense.name;
+                option.textContent = `${defense.name} (${defense.pouvoir}, Modificateur: ${defense.modificateur})`;
+                select.appendChild(option);
+            });
+
+            defenseContainer.appendChild(select);
+        });
+
         // Ajouter les caractéristiques
         if (hero.powerstats) {
             Object.entries(hero.powerstats).forEach(([key, value]) => {
                 const statItem = document.createElement('div');
                 statItem.className = 'stat-item';
                 
-                // Créer et ajouter l'icône en utilisant une image
                 const iconImg = document.createElement('img');
                 iconImg.src = `/img/${statImages[key] || 'default.png'}`;
                 iconImg.alt = key.charAt(0).toUpperCase() + key.slice(1);
@@ -227,19 +232,35 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
-        // Fonction pour charger les attaques depuis la nouvelle route API
-        async function fetchAttacks() {
-            try {
-                const response = await fetch('/api/attaques'); // Utilisation de la nouvelle route API
-                if (!response.ok) {
-                    throw new Error(`Erreur HTTP: ${response.status}`);
-                }
-                return await response.json();
-            } catch (error) {
-                console.error('Erreur lors du chargement des attaques:', error);
-                return [];
+
+    // Fonction pour charger les attaques depuis l'API
+    async function fetchAttacks() {
+        try {
+            const response = await fetch('/api/attaques');
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
             }
+            return await response.json();
+        } catch (error) {
+            console.error('Erreur lors du chargement des attaques:', error);
+            return [];
         }
+    }
+
+    // Fonction pour charger les défenses depuis l'API
+    async function fetchDefenses() {
+        try {
+            const response = await fetch('/api/defenses');
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Erreur lors du chargement des défenses:', error);
+            return [];
+        }
+    }
+
     // Étape 1: Clic sur le bouton Play
     playBtn.addEventListener('click', () => {
         welcomeScreen.style.display = 'none';
@@ -248,41 +269,32 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Étape 2: Confirmation des pseudos et début du combat
     startBattleBtn.addEventListener('click', async () => {
-        // Récupérer et nettoyer les pseudos
         player1Name = player1NameInput.value.trim() || "Joueur 1";
         player2Name = player2NameInput.value.trim() || "Joueur 2";
         
-        // Cacher le formulaire
         playersInput.style.display = 'none';
         
-        // Mise à jour des noms des joueurs dans l'interface
         player1Display.textContent = player1Name;
         player2Display.textContent = player2Name;
         
-        // Préparer les zones des héros pour l'affichage
         document.getElementById('hero-name-1').textContent = 'Chargement...';
         document.getElementById('hero-name-2').textContent = 'Chargement...';
         document.getElementById('powerstats-1').innerHTML = '';
         document.getElementById('powerstats-2').innerHTML = '';
         
-        // Afficher le conteneur de bataille
         battleContainer.style.display = 'flex';
         
-        // Récupérer deux héros avec la fonction retry
         const [hero1, hero2] = await Promise.all([
             fetchHeroWithRetry(),
             fetchHeroWithRetry()
         ]);
         
-        // Afficher les informations des deux héros
         displayHeroInBattle(hero1, 1);
         displayHeroInBattle(hero2, 2);
         
-        // Précharger quelques héros supplémentaires pour les prochaines utilisations
         preloadNextHeroes(5);
     });
     
-    // Fonction pour précharger des héros supplémentaires en arrière-plan
     async function preloadNextHeroes(count = 3) {
         for (let i = 0; i < count; i++) {
             setTimeout(async () => {
@@ -291,10 +303,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (hero) {
                         preloadHeroImage(hero);
                     }
-                } catch (err) {
-                    // Ignorer silencieusement les erreurs de préchargement
-                }
-            }, i * 300); // Espacer les requêtes pour ne pas surcharger le serveur
+                } catch (err) {}
+            }, i * 300);
         }
     }
 });

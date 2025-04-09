@@ -196,6 +196,26 @@ async function startServer() {
     });
   });
 
+  app.get('/api/defenses', (req, res) => {
+    const fs = require('fs');
+    const filePath = path.join(__dirname, 'pouvoirs', 'defenses.json');
+
+    fs.readFile(filePath, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Erreur lors de la lecture du fichier defenses.json:', err);
+            return res.status(500).json({ message: "Erreur lors de la récupération des défenses" });
+        }
+
+        try {
+            const defenses = JSON.parse(data);
+            res.json(defenses);
+        } catch (parseError) {
+            console.error('Erreur lors de l\'analyse du fichier defenses.json:', parseError);
+            res.status(500).json({ message: "Erreur lors de l'analyse des défenses" });
+        }
+    });
+  });
+
   app.listen(port, () => {
     console.log("Serveur démarré sur http://localhost:3000");
   });

@@ -172,6 +172,8 @@ h2 {
     margin-bottom: 10px;
 }
 
+/* Attaques */
+
 .attack-container {
     display: grid;
     grid-template-columns: repeat(2, 1fr); /* Deux colonnes comme les caractéristiques */
@@ -197,6 +199,46 @@ h2 {
 }
 
 .attack-select {
+    grid-column: span 2; /* Le menu déroulant occupe toute la largeur */
+    width: 100%;
+    padding: 10px; /* Augmentez l'espace intérieur pour un meilleur confort */
+    font-size: 16px; /* Texte légèrement plus grand */
+    font-weight: bold; /* Texte en gras pour plus de visibilité */
+    color: #333; /* Couleur du texte */
+    border-radius: 8px; /* Bordures arrondies */
+    background-color: #f9f9f9; /* Fond clair */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère */
+    transition: all 0.3s ease; /* Transition pour les interactions */
+    cursor: pointer; /* Curseur en mode "pointer" */
+}
+
+/* Défenses */
+
+.defense-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Deux colonnes comme les caractéristiques */
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.defense-item {
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.defense-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    text-align: left;
+}
+
+.defense-select {
     grid-column: span 2; /* Le menu déroulant occupe toute la largeur */
     width: 100%;
     padding: 10px; /* Augmentez l'espace intérieur pour un meilleur confort */
