@@ -31,7 +31,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Compteur de tour
     let turnCounter = 1;
-
+    //Faiblesses 
+    const faiblesses = {
+        "Intelligence": "Power",
+        "Strength": "Intelligence",
+        "Speed": "Durability",
+        "Durability": "Strength",
+        "Power": "Combat",
+        "Combat": "Speed"
+      };
+    let degats_faiblesse=0;
+    let degats_initiaux=0;
+      
     // Création de l'élément pour le compteur de tour
     const turnCounterDisplay = document.createElement('div');
     turnCounterDisplay.id = 'turn-counter';
@@ -338,11 +349,31 @@ document.addEventListener('DOMContentLoaded', () => {
             hpBar2.style.background = 'linear-gradient(90deg, #ff9500 0%, #ffcc00 100%)';
         }
     }
-    
+    function calculerDegats(baseDegats, typeAttaque, typeDefense) {
+        // Si la défense est faible contre l’attaque
+        if (faiblesses[typeDefense] === typeAttaque) {
+            degats_faiblesse = 20;
+          console.log("ici");
+          return baseDegats + 20;
+        }
+      
+        // Si l’attaque est faible contre la défense
+        if (faiblesses[typeAttaque] === typeDefense) {
+            degats_faiblesse = -20;
+            console.log("ici2");
+          return baseDegats - 20;
+          
+        }
+        console.log("ici3");
+        // Sinon dégâts normaux
+        return baseDegats;
+      }
     // Fonction pour infliger des dégâts à un joueur
     function dealDamage(player, damage) {
         const hpBar = player === 1 ? hpBar1 : hpBar2;
         
+
+
         // Animation de dégât
         hpBar.classList.add('damage-animation');
         setTimeout(() => {
@@ -364,6 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (player2HP <= 0) {
             alert(`${player1Name} a gagné le combat!`);
         }
+        return damage;
     }
 
     // Fonction pour calculer la moyenne des stats d'un héros
@@ -737,11 +769,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Calculer les dégâts
         const valeurAttaque = getStatValue(heroAttaquant, attaqueChoisie.pouvoir) * attaqueChoisie.modificateur;
         const valeurDefense = getStatValue(heroDefenseur, defenseChoisie.pouvoir) * defenseChoisie.modificateur;
-        
+        degats_faiblesse=0;
         // Calculer les dégâts finaux
-        const degats = Math.max(0, Math.floor(valeurAttaque - valeurDefense));
-        
+        let degats = Math.max(0, Math.floor(valeurAttaque - valeurDefense));
+        console.log(degats);
+        degats_initiaux=degats;
         // Appliquer les dégâts
+        degats = calculerDegats(degats, attaqueChoisie.pouvoir, defenseChoisie.pouvoir);
+        console.log(degats);
         dealDamage(defenseur, degats);
         
         // Afficher un message de combat
@@ -751,8 +786,14 @@ document.addEventListener('DOMContentLoaded', () => {
             <strong>${attaquant === 1 ? player1Name : player2Name}</strong> utilise ${attaqueChoisie.name} (${Math.floor(valeurAttaque)} pts)
             <br>
             <strong>${defenseur === 1 ? player1Name : player2Name}</strong> se défend avec ${defenseChoisie.name} (${Math.floor(valeurDefense)} pts)
+            
+            
+            ${degats_faiblesse !== 0 ? `
+                <br> Dégâts initiaux : ${degats_initiaux} <br>
+                Dégâts de faiblesse : ${degats_faiblesse > 0 ? '+' : ''}${degats_faiblesse}` : ''}
             <br>
             Dégâts infligés : ${degats}
+            
         `;
         battleContainer.insertAdjacentElement('beforeend', combatMessage);
         
