@@ -172,7 +172,12 @@ h2 {
     margin-bottom: 10px;
 }
 
-/* Attaques */
+/* Attaques et défenses */
+
+.attack-container,
+.defense-container {
+    display: none;
+}
 
 .attack-container {
     display: grid;
@@ -211,8 +216,6 @@ h2 {
     transition: all 0.3s ease; /* Transition pour les interactions */
     cursor: pointer; /* Curseur en mode "pointer" */
 }
-
-/* Défenses */
 
 .defense-container {
     display: grid;
@@ -294,4 +297,22 @@ h2 {
     .player-field {
         width: 100%;
     }
+}
+
+/* Style pour le bouton de changement de rôle */
+.role-switch-btn {
+    margin-top: 20px;
+    align-self: center; /* Centre le bouton horizontalement */
+    padding: 15px 30px;
+    font-size: 18px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.role-switch-btn:hover {
+    background-color: #45a049;
 }
