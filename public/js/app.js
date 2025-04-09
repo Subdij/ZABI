@@ -714,9 +714,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 const nameElement = element.querySelector('.stat-name');
                 if (nameElement && nameElement.textContent.toLowerCase().includes(statName.toLowerCase())) {
                     const valueElement = element.querySelector('span:last-child');
-                    // Récupérer seulement le nombre, sans le texte de boost éventuel
-                    const value = valueElement.textContent.split('(')[0].trim();
-                    return parseInt(value);
+                    
+                    // Vérifier si la stat est boostée (contient des parenthèses)
+                    if (valueElement.innerHTML.includes('(+')) {
+                        // Extraire la valeur originale et la valeur de boost
+                        const originalValue = parseInt(valueElement.textContent.split('(')[0].trim());
+                        // Extraire le nombre entre (+) dans le HTML
+                        const boostMatch = valueElement.innerHTML.match(/\(\+(\d+)\)/);
+                        const boostValue = boostMatch ? parseInt(boostMatch[1]) : 0;
+                        
+                        // Retourner la somme des deux valeurs
+                        return originalValue + boostValue;
+                    } else {
+                        // Cas standard, sans boost
+                        return parseInt(valueElement.textContent);
+                    }
                 }
             }
             return 0;
