@@ -550,7 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const boostMessage = document.createElement('div');
         boostMessage.className = 'boost-message';
-        boostMessage.innerHTML = '🔥 <strong>STATS BOOSTÉES</strong> pour équilibrer le combat!';
+        boostMessage.innerHTML = '<strong>STATS BOOSTÉES</strong>';
         
         // Insérer le message au-dessus de la section des caractéristiques
         const powerstatsTitle = powerupContainer.querySelector('h3:nth-of-type(3)');
