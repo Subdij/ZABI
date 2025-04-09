@@ -2,61 +2,61 @@
     {
         "name" : "Lecture de l'attaque", 
         "pouvoir" : "Intelligence",
-        "modificateur" : 0.9
+        "modificateur" : 0.5
     },
     {
         "name" : "Feinte défensive", 
         "pouvoir" : "Intelligence",
-        "modificateur" : 0.8
+        "modificateur" : 0.4
     },
     {
         "name" : "Blocage indestructible", 
         "pouvoir" : "Force",
-        "modificateur" : 0.7
+        "modificateur" : 0.3
     },
     {
         "name" : "Parade musclée", 
         "pouvoir" : "Force",
-        "modificateur" : 0.6
+        "modificateur" : 0.2
     },
     {
         "name" : "Esquive ultra-rapide", 
         "pouvoir" : "Vitesse",
-        "modificateur" : 0.9
+        "modificateur" : 0.5
     },
     {
         "name" : "Déplacement instantané", 
         "pouvoir" : "Vitesse",
-        "modificateur" : 0.85
+        "modificateur" : 0.45
     },
     {
         "name" : "Endurance renforcée", 
         "pouvoir" : "Durabilité",
-        "modificateur" : 0.5
+        "modificateur" : 0.1
     },
     {
         "name" : "Absorption des chocs", 
         "pouvoir" : "Durabilité",
-        "modificateur" : 0.6
+        "modificateur" : 0.2
     },
     {
         "name" : "Bouclier d'énergie", 
         "pouvoir" : "Puissance",
-        "modificateur" : 0.75
+        "modificateur" : 0.35
     },
     {
         "name" : "Absorption d'énergie", 
         "pouvoir" : "Puissance",
-        "modificateur" : 0.7
+        "modificateur" : 0.3
     },
     {
         "name" : "Riposte défensive", 
         "pouvoir" : "Combat",
-        "modificateur" : 0.8
+        "modificateur" : 0.4
     },
     {
         "name" : "Contre-attaque rapide", 
         "pouvoir" : "Combat",
-        "modificateur" : 0.7
+        "modificateur" : 0.3
     }
 ]

@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const hpText2 = document.getElementById('hp-text-2');
     
     // Variables pour stocker les PV des joueurs
-    const maxHP = 1000;
+    const maxHP = 10;
     let player1HP = maxHP;
     let player2HP = maxHP;
 
@@ -680,13 +680,77 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Bouton pour changer de rôle
     const roleSwitchBtn = document.createElement('button');
-    roleSwitchBtn.textContent = 'Changer de rôle';
+    roleSwitchBtn.textContent = 'Valider';
     roleSwitchBtn.className = 'btn-primary role-switch-btn';
     roleSwitchBtn.style.display = 'none'; // Masquer le bouton par défaut
     battleContainer.insertAdjacentElement('afterend', roleSwitchBtn);
 
     // Gestion du clic sur le bouton de changement de rôle
-    roleSwitchBtn.addEventListener('click', () => {
+    roleSwitchBtn.addEventListener('click', async () => {
+        // Récupérer l'attaque et la défense sélectionnées
+        const attaquant = player1Role === 'Attaquant' ? 1 : 2;
+        const defenseur = attaquant === 1 ? 2 : 1;
+        
+        const attackSelect = document.getElementById(`attack-select-${attaquant}`);
+        const defenseSelect = document.getElementById(`defense-select-${defenseur}`);
+        
+        // Récupérer les données complètes des attaques et défenses
+        const [attaques, defenses] = await Promise.all([
+            fetchAttacks(),
+            fetchDefenses()
+        ]);
+        
+        const attaqueChoisie = attaques.find(a => a.name === attackSelect.value);
+        const defenseChoisie = defenses.find(d => d.name === defenseSelect.value);
+        
+        // Récupérer les héros
+        const heroAttaquant = document.getElementById(`powerstats-${attaquant}`);
+        const heroDefenseur = document.getElementById(`powerstats-${defenseur}`);
+        
+        // Récupérer les valeurs des stats en utilisant une fonction utilitaire
+        const getStatValue = (container, statName) => {
+            const statElements = container.querySelectorAll('.stat-item');
+            for (const element of statElements) {
+                const nameElement = element.querySelector('.stat-name');
+                if (nameElement && nameElement.textContent.toLowerCase().includes(statName.toLowerCase())) {
+                    const valueElement = element.querySelector('span:last-child');
+                    // Récupérer seulement le nombre, sans le texte de boost éventuel
+                    const value = valueElement.textContent.split('(')[0].trim();
+                    return parseInt(value);
+                }
+            }
+            return 0;
+        };
+        
+        // Calculer les dégâts
+        const valeurAttaque = getStatValue(heroAttaquant, attaqueChoisie.pouvoir) * attaqueChoisie.modificateur;
+        const valeurDefense = getStatValue(heroDefenseur, defenseChoisie.pouvoir) * defenseChoisie.modificateur;
+        
+        // Calculer les dégâts finaux
+        const degats = Math.max(0, Math.floor(valeurAttaque - valeurDefense));
+        
+        // Appliquer les dégâts
+        dealDamage(defenseur, degats);
+        
+        // Afficher un message de combat
+        const combatMessage = document.createElement('div');
+        combatMessage.className = 'combat-message';
+        combatMessage.innerHTML = `
+            <strong>${attaquant === 1 ? player1Name : player2Name}</strong> utilise ${attaqueChoisie.name} (${Math.floor(valeurAttaque)} pts)
+            <br>
+            <strong>${defenseur === 1 ? player1Name : player2Name}</strong> se défend avec ${defenseChoisie.name} (${Math.floor(valeurDefense)} pts)
+            <br>
+            Dégâts infligés : ${degats}
+        `;
+        battleContainer.insertAdjacentElement('beforeend', combatMessage);
+        
+        // Supprimer le message après 3 secondes
+        setTimeout(() => {
+            if (battleContainer.contains(combatMessage)) {
+                battleContainer.removeChild(combatMessage);
+            }
+        }, 3000);
+
         // Inverser les rôles
         [player1Role, player2Role] = [player2Role, player1Role];
         updateRoleDisplay();
