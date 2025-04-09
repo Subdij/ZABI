@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const hpText2 = document.getElementById('hp-text-2');
     
     // Variables pour stocker les PV des joueurs
-    const maxHP = 10;
+    const maxHP = 1000;
     let player1HP = maxHP;
     let player2HP = maxHP;
 
