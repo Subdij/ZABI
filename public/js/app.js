@@ -623,6 +623,28 @@ document.addEventListener('DOMContentLoaded', () => {
         updateRoleDisplay();
     }
 
+    // Ajouter ces variables pour gérer les phases de jeu
+    let currentGamePhase = 'attack'; // 'attack', 'defense', 'resolution'
+    let currentAttackChoice = null;
+    let currentDefenseChoice = null;
+
+    // Ajouter cette fonction pour afficher un message de transition
+    function showTurnTransitionMessage(playerName, role, message = null) {
+        const transitionMessage = document.createElement('div');
+        transitionMessage.className = 'turn-transition-message';
+        transitionMessage.innerHTML = `
+            <div class="turn-player">${playerName} (${role})</div>
+            ${message ? `<div class="turn-message">${message}</div>` : ''}
+        `;
+        document.body.appendChild(transitionMessage);
+    
+        setTimeout(() => {
+            if (document.body.contains(transitionMessage)) {
+                document.body.removeChild(transitionMessage);
+            }
+        }, 2000);
+    }
+
     // Fonction pour mettre à jour l'affichage en fonction des rôles
     function updateRoleDisplay() {
         const attackContainer1 = document.getElementById('attack-container-1');
@@ -661,6 +683,15 @@ document.addEventListener('DOMContentLoaded', () => {
             attackTitle2.style.display = 'block';
             defenseTitle2.style.display = 'none';
         }
+
+        // Mettre à jour uniquement le texte du bouton selon la phase
+        if (currentGamePhase === 'attack') {
+            const attaquant = player1Role === 'Attaquant' ? player1Name : player2Name;
+            roleSwitchBtn.textContent = `${attaquant} - Valider l'attaque`;
+        } else if (currentGamePhase === 'defense') {
+            const defenseur = player1Role === 'Défenseur' ? player1Name : player2Name;
+            roleSwitchBtn.textContent = `${defenseur} - Valider la défense`;
+        }
     }
 
     // Étape 1: Clic sur le bouton Play
@@ -691,18 +722,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         battleContainer.style.display = 'flex';
 
-        const [hero1, hero2] = await Promise.all([
+        const [loadedHero1, loadedHero2] = await Promise.all([
             fetchHeroWithRetry(),
             fetchHeroWithRetry()
         ]);
 
+        hero1 = loadedHero1;  // Stocker les héros globalement
+        hero2 = loadedHero2;
+
         displayHeroInBattle(hero1, 1);
         displayHeroInBattle(hero2, 2);
         
-        // Analyser l'équilibre du combat
+        // Analyser l'équilibre du combat et attendre 5 secondes avant de continuer
         analyzeMatchup(hero1, hero2);
+        await new Promise(resolve => setTimeout(resolve, 5000));
 
         assignRoles(); // Attribuer les rôles au début du combat
+        const attaquantInitial = player1Role === 'Attaquant' ? player1Name : player2Name;
+        showTurnTransitionMessage(attaquantInitial, 'Attaquant', 'C\'est à vous d\'attaquer!');
         preloadNextHeroes(5);
 
         // Afficher le bouton "Changer de rôle" et le compteur de tour une fois le combat commencé
@@ -723,124 +760,110 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Gestion du clic sur le bouton de changement de rôle
     roleSwitchBtn.addEventListener('click', async () => {
-        // Récupérer l'attaque et la défense sélectionnées
         const attaquant = player1Role === 'Attaquant' ? 1 : 2;
         const defenseur = attaquant === 1 ? 2 : 1;
+        const heroAttaquant = attaquant === 1 ? hero1 : hero2;
+        const heroDefenseur = defenseur === 1 ? hero1 : hero2;
         
-        const attackSelect = document.getElementById(`attack-select-${attaquant}`);
-        const defenseSelect = document.getElementById(`defense-select-${defenseur}`);
-        
-        // Récupérer les données complètes des attaques et défenses
-        const [attaques, defenses] = await Promise.all([
-            fetchAttacks(),
-            fetchDefenses()
-        ]);
-        
-        const attaqueChoisie = attaques.find(a => a.name === attackSelect.value);
-        const defenseChoisie = defenses.find(d => d.name === defenseSelect.value);
-        
-        // Récupérer les héros
-        const heroAttaquant = document.getElementById(`powerstats-${attaquant}`);
-        const heroDefenseur = document.getElementById(`powerstats-${defenseur}`);
-        
-        // Récupérer les valeurs des stats en utilisant une fonction utilitaire
-        const getStatValue = (container, statName) => {
-            const statElements = container.querySelectorAll('.stat-item');
-            for (const element of statElements) {
-                const nameElement = element.querySelector('.stat-name');
-                if (nameElement && nameElement.textContent.toLowerCase().includes(statName.toLowerCase())) {
-                    const valueElement = element.querySelector('span:last-child');
-                    
-                    // Vérifier si la stat est boostée (contient des parenthèses)
-                    if (valueElement.innerHTML.includes('(+')) {
-                        // Extraire la valeur originale et la valeur de boost
-                        const originalValue = parseInt(valueElement.textContent.split('(')[0].trim());
-                        // Extraire le nombre entre (+) dans le HTML
-                        const boostMatch = valueElement.innerHTML.match(/\(\+(\d+)\)/);
-                        const boostValue = boostMatch ? parseInt(boostMatch[1]) : 0;
-                        
-                        // Retourner la somme des deux valeurs
-                        return originalValue + boostValue;
-                    } else {
-                        // Cas standard, sans boost
-                        return parseInt(valueElement.textContent);
-                    }
+        if (currentGamePhase === 'attack') {
+            // Sauvegarder le choix d'attaque
+            const attackSelect = document.getElementById(`attack-select-${attaquant}`);
+            const attaques = await fetchAttacks();
+            currentAttackChoice = attaques.find(a => a.name === attackSelect.value);
+            
+            // Désactiver les contrôles de l'attaquant
+            attackSelect.disabled = true;
+            document.querySelectorAll(`#hero-info-${attaquant} .power-up-btn`).forEach(btn => {
+                btn.disabled = true;
+            });
+            
+            // Passer à la phase de défense
+            currentGamePhase = 'defense';
+            roleSwitchBtn.textContent = `${player1Role === 'Défenseur' ? player1Name : player2Name} - Valider la défense`;
+            
+            // Activer les contrôles du défenseur
+            const defenseSelect = document.getElementById(`defense-select-${defenseur}`);
+            defenseSelect.disabled = false;
+            document.querySelectorAll(`#hero-info-${defenseur} .power-up-btn`).forEach(btn => {
+                if (btn.getAttribute('data-used') !== 'true') {
+                    btn.disabled = false;
                 }
+            });
+
+            // Ajouter un délai avant d'afficher le message pour le défenseur
+            await new Promise(resolve => setTimeout(resolve, 500));
+            const defenseurName = player1Role === 'Défenseur' ? player1Name : player2Name;
+            showTurnTransitionMessage(defenseurName, 'Défenseur', 'C\'est à vous de vous défendre!');
+        } 
+        else if (currentGamePhase === 'defense') {
+            // Sauvegarder le choix de défense
+            const defenseSelect = document.getElementById(`defense-select-${defenseur}`);
+            const defenses = await fetchDefenses();
+            currentDefenseChoice = defenses.find(d => d.name === defenseSelect.value);
+            
+            // Désactiver les contrôles du défenseur
+            defenseSelect.disabled = true;
+            document.querySelectorAll(`#hero-info-${defenseur} .power-up-btn`).forEach(btn => {
+                btn.disabled = true;
+            });
+            
+            // Calculer les dégâts
+            let valeurAttaque = getStatValue(heroAttaquant, currentAttackChoice.pouvoir) * currentAttackChoice.modificateur;
+            let valeurDefense = getStatValue(heroDefenseur, currentDefenseChoice.pouvoir) * currentDefenseChoice.modificateur;
+            
+            let degats = Math.max(0, Math.floor(valeurAttaque - valeurDefense));
+            degats_initiaux = degats;
+            
+            // Appliquer les effets des power-ups
+            if (activeAttackPowerUp) {
+                degats = activeAttackPowerUp.effect(degats, currentAttackChoice.pouvoir, currentDefenseChoice.pouvoir);
+                activeAttackPowerUp = null;
             }
-            return 0;
-        };
-        
-        // Calculer les dégâts
-        let valeurAttaque = getStatValue(heroAttaquant, attaqueChoisie.pouvoir) * attaqueChoisie.modificateur;
-        let valeurDefense = getStatValue(heroDefenseur, defenseChoisie.pouvoir) * defenseChoisie.modificateur;
-        degats_faiblesse=0;
-        // Calculer les dégâts finaux
-        let degats = Math.max(0, Math.floor(valeurAttaque - valeurDefense));
-        console.log(degats);
-        degats_initiaux=degats;
-        // Calculer les dégâts avec les power-ups
-        // Appliquer les power-ups d'attaque
-        if (activeAttackPowerUp) {
-            console.log(`Power-up d'attaque actif: ${activeAttackPowerUp.name}`);
-            switch(activeAttackPowerUp.name) {
-                case "Frappe Dévastatrice":
-                    valeurAttaque = activeAttackPowerUp.effect(valeurAttaque);
-                    console.log(`Valeur d'attaque doublée: ${valeurAttaque}`);
-                    break;
-                case "Expert des Faiblesses":
-                    const oldDegats = degats;
-                    degats = activeAttackPowerUp.effect(degats, attaqueChoisie.pouvoir, defenseChoisie.pouvoir);
-                    console.log(`Dégâts modifiés par Expert des Faiblesses: ${oldDegats} → ${degats}`);
-                    break;
-                // ... autres cas
+            if (activeDefensePowerUp) {
+                degats = Math.max(0, Math.floor(degats * (1 - activeDefensePowerUp.effect(0.5))));
+                activeDefensePowerUp = null;
             }
-            activeAttackPowerUp = null;
+            
+            // Appliquer les faiblesses
+            degats = calculerDegats(degats, currentAttackChoice.pouvoir, currentDefenseChoice.pouvoir);
+            
+            // Ajouter l'animation de combat
+            await showBattleAnimation();
+            
+            // Afficher le message de dégâts
+            const combatMessage = document.createElement('div');
+            combatMessage.className = 'combat-message';
+            combatMessage.textContent = `${degats} points de dégâts infligés!`;
+            document.body.appendChild(combatMessage);
+            
+            // Attendre que le message de dégâts disparaisse
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            if (document.body.contains(combatMessage)) {
+                document.body.removeChild(combatMessage);
+            }
+            
+            dealDamage(defenseur, degats);
+            
+            // Attendre un peu avant de passer au tour suivant
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Réinitialiser pour le prochain tour
+            currentGamePhase = 'attack';
+            currentAttackChoice = null;
+            currentDefenseChoice = null;
+            
+            [player1Role, player2Role] = [player2Role, player1Role];
+            updateRoleDisplay();
+            
+            // Incrémenter le compteur de tour
+            turnCounter++;
+            turnCounterDisplay.textContent = `Tour : ${turnCounter}`;
+
+            // Ajouter un délai avant d'afficher le message pour le prochain attaquant
+            await new Promise(resolve => setTimeout(resolve, 500));
+            const prochainAttaquant = player1Role === 'Attaquant' ? player1Name : player2Name;
+            showTurnTransitionMessage(prochainAttaquant, 'Attaquant', 'C\'est à vous d\'attaquer!');
         }
-
-        if (activeDefensePowerUp) {
-            console.log(`Power-up de défense actif: ${activeDefensePowerUp.name}`);
-            const oldDefense = valeurDefense;
-            valeurDefense = activeDefensePowerUp.effect(valeurDefense);
-            console.log(`Valeur de défense modifiée: ${oldDefense} → ${valeurDefense}`);
-            activeDefensePowerUp = null;
-        }
-        // Appliquer les dégâts
-        degats = calculerDegats(degats, attaqueChoisie.pouvoir, defenseChoisie.pouvoir);
-        console.log(degats);
-        dealDamage(defenseur, degats);
-        
-        // Afficher un message de combat
-        const combatMessage = document.createElement('div');
-        combatMessage.className = 'combat-message';
-        combatMessage.innerHTML = `
-            <strong>${attaquant === 1 ? player1Name : player2Name}</strong> utilise ${attaqueChoisie.name} (${Math.floor(valeurAttaque)} pts)
-            <br>
-            <strong>${defenseur === 1 ? player1Name : player2Name}</strong> se défend avec ${defenseChoisie.name} (${Math.floor(valeurDefense)} pts)
-            
-            
-            ${degats_faiblesse !== 0 ? `
-                <br> Dégâts initiaux : ${degats_initiaux} <br>
-                Dégâts de faiblesse : ${degats_faiblesse > 0 ? '+' : ''}${degats_faiblesse}` : ''}
-            <br>
-            Dégâts infligés : ${degats}
-            
-        `;
-        battleContainer.insertAdjacentElement('beforeend', combatMessage);
-        
-        // Supprimer le message après 3 secondes
-        setTimeout(() => {
-            if (battleContainer.contains(combatMessage)) {
-                battleContainer.removeChild(combatMessage);
-            }
-        }, 3000);
-
-        // Inverser les rôles
-        [player1Role, player2Role] = [player2Role, player1Role];
-        updateRoleDisplay();
-
-        // Incrémenter le compteur de tour
-        turnCounter++;
-        turnCounterDisplay.textContent = `Tour : ${turnCounter}`;
     });
 
     async function preloadNextHeroes(count = 3) {
@@ -1049,6 +1072,36 @@ document.addEventListener('DOMContentLoaded', () => {
         container.insertAdjacentElement('afterbegin', powerUpButton);
         
         return randomPowerUp[1];
+    }
+
+    // Ajouter ces variables pour stocker les héros
+    let hero1 = null;
+    let hero2 = null;
+
+    // Ajouter cette fonction pour récupérer la valeur d'une statistique
+    function getStatValue(hero, statName) {
+        if (!hero || !hero.powerstats) return 0;
+        return parseInt(hero.powerstats[statName.toLowerCase()]) || 0;
+    }
+
+    // Ajouter cette fonction pour l'animation de combat
+    function showBattleAnimation() {
+        return new Promise(resolve => {
+            const animationContainer = document.createElement('div');
+            animationContainer.className = 'combat-animation';
+            
+            const battleText = document.createElement('div');
+            battleText.className = 'battle-flash';
+            battleText.textContent = '⚔️ COMBAT ! ⚔️';
+            
+            animationContainer.appendChild(battleText);
+            document.body.appendChild(animationContainer);
+
+            setTimeout(() => {
+                document.body.removeChild(animationContainer);
+                resolve();
+            }, 1500);
+        });
     }
 
 });
