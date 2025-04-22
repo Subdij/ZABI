@@ -708,6 +708,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Afficher le bouton "Changer de rôle" et le compteur de tour une fois le combat commencé
         roleSwitchBtn.style.display = 'block';
         turnCounterDisplay.style.display = 'block';
+
+        // Afficher le bouton "Historique" une fois le combat commencé
+        historyBtn.style.display = 'block';
     });
 
     // Bouton pour changer de rôle
@@ -716,6 +719,51 @@ document.addEventListener('DOMContentLoaded', () => {
     roleSwitchBtn.className = 'btn-primary role-switch-btn';
     roleSwitchBtn.style.display = 'none'; // Masquer le bouton par défaut
     battleContainer.insertAdjacentElement('afterend', roleSwitchBtn);
+
+    // Tableau pour stocker l'historique des messages
+    const combatHistory = [];
+
+    // Ajouter un message à l'historique avec le numéro du tour
+    function addToHistory(message) {
+        combatHistory.push({
+            turn: turnCounter,
+            message: message
+        });
+    }
+
+    // Bouton et modal pour l'historique
+    const historyBtn = document.getElementById('history-btn');
+    const historyModal = document.getElementById('history-modal');
+    const closeModal = document.getElementById('close-modal');
+    const historyContent = document.getElementById('history-content');
+
+    // Afficher l'historique dans la fenêtre modale avec des séparateurs
+    historyBtn.addEventListener('click', () => {
+        // Inverser l'ordre des tours pour afficher le dernier en haut
+        historyContent.innerHTML = combatHistory
+            .slice() // Crée une copie du tableau pour ne pas modifier l'original
+            .reverse() // Inverse l'ordre des éléments
+            .map(entry => `
+                <div class="history-event">
+                    <div class="history-turn">Tour ${entry.turn} :</div>
+                    <div class="history-message">${entry.message}</div>
+                </div>
+            `)
+            .join('<hr class="history-separator">');
+        historyModal.style.display = 'block';
+    });
+
+    // Fermer la fenêtre modale
+    closeModal.addEventListener('click', () => {
+        historyModal.style.display = 'none';
+    });
+
+    // Fermer la fenêtre modale en cliquant à l'extérieur
+    window.addEventListener('click', (event) => {
+        if (event.target === historyModal) {
+            historyModal.style.display = 'none';
+        }
+    });
 
     // Gestion du clic sur le bouton de changement de rôle
     roleSwitchBtn.addEventListener('click', async () => {
@@ -779,7 +827,20 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(degats);
         dealDamage(defenseur, degats);
         
-        // Afficher un message de combat
+        // Ajouter le message au tableau d'historique
+        const message = `
+            <strong>${attaquant === 1 ? player1Name : player2Name}</strong> utilise ${attaqueChoisie.name} (${Math.floor(valeurAttaque)} pts)
+            <br>
+            <strong>${defenseur === 1 ? player1Name : player2Name}</strong> se défend avec ${defenseChoisie.name} (${Math.floor(valeurDefense)} pts)
+            ${degats_faiblesse !== 0 ? `
+                <br> Dégâts initiaux : ${degats_initiaux} <br>
+                Dégâts de faiblesse : ${degats_faiblesse > 0 ? '+' : ''}${degats_faiblesse}` : ''}
+            <br>
+            Dégâts infligés : ${degats}
+        `;
+        addToHistory(message);
+        
+        // Ajouter un message de combat
         const combatMessage = document.createElement('div');
         combatMessage.className = 'combat-message';
         combatMessage.innerHTML = `
