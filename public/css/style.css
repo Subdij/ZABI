@@ -689,396 +689,6 @@ h2 {
     white-space: nowrap;
 }
 
-/* Styles pour les barres de PV */
-.hp-container {
-    margin-bottom: 15px;
-    width: 100%;
-}
-
-.hp-bar-wrapper {
-    width: 100%;
-    height: 20px;
-    background-color: #e0e0e0;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
-    margin-bottom: 5px;
-}
-
-.hp-bar {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
-    border-radius: 10px;
-    transition: width 0.3s ease-in-out;
-}
-
-.hp-text {
-    text-align: center;
-    font-weight: bold;
-    color: #333;
-    font-size: 14px;
-}
-
-/* Animation pour les dégâts */
-@keyframes damage-flash {
-    0% { background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%); }
-    50% { background: linear-gradient(90deg, #e63946 0%, #ff6b6b 100%); }
-    100% { background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%); }
-}
-
-.damage-animation {
-    animation: damage-flash 0.5s ease-in-out;
-}
-
-/* Styles pour l'analyse du matchup */
-.matchup-info {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(0, 0, 0, 0.85);
-    color: white;
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    z-index: 100;
-    text-align: center;
-    min-width: 350px;
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.stats-comparison {
-    margin: 20px 0;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.player-avg {
-    font-size: 18px;
-    padding: 10px;
-    border-radius: 8px;
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.match-status {
-    font-size: 22px;
-    font-weight: bold;
-    padding: 10px;
-    border-radius: 8px;
-    margin-top: 20px;
-}
-
-.match-status-équilibré {
-    background-color: #4CAF50;
-}
-
-.match-status-légèrement-déséquilibré {
-    background-color: #ff9800;
-}
-
-.match-status-fortement-déséquilibré {
-    background-color: #f44336;
-}
-
-/* Power-up de soin */
-.heal-powerup-btn {
-    background: linear-gradient(135deg, #ff5f6d 0%, #ffc371 100%);
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 50px;
-    cursor: pointer;
-    margin: 10px 0;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 100%;
-}
-
-.heal-powerup-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-    background: linear-gradient(135deg, #ff4f5e 0%, #ffb356 100%);
-}
-
-.heal-powerup-btn.used {
-    background: #7f8c8d;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-/* Animation de soin */
-@keyframes heal-flash {
-    0% { background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%); }
-    50% { background: linear-gradient(90deg, #00ff00 0%, #66ff66 100%); }
-    100% { background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%); }
-}
-
-.heal-animation {
-    animation: heal-flash 1s ease-in-out;
-}
-
-/* Styles améliorés pour l'analyse du matchup */
-.matchup-info {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: linear-gradient(135deg, #2c3e50 0%, #1a1a2e 100%);
-    color: white;
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
-    z-index: 100;
-    text-align: center;
-    min-width: 400px;
-    animation: slideIn 0.5s ease-in-out;
-    border: 2px solid #3498db;
-}
-
-@keyframes slideIn {
-    from { 
-        opacity: 0;
-        transform: translate(-50%, -70%);
-    }
-    to { 
-        opacity: 1;
-        transform: translate(-50%, -50%);
-    }
-}
-
-.matchup-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 15px;
-}
-
-.matchup-icon {
-    font-size: 28px;
-    margin-right: 10px;
-}
-
-.matchup-header h2 {
-    color: #3498db;
-    margin: 0;
-    font-size: 24px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.stats-comparison {
-    margin: 25px 0;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 15px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-}
-
-.player-avg {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 15px;
-    border-radius: 10px;
-    width: 40%;
-    transition: all 0.3s ease;
-}
-
-.player-avg:hover {
-    transform: translateY(-5px);
-}
-
-.player-avg-1 {
-    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-}
-
-.player-avg-2 {
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-}
-
-.player-name {
-    font-weight: bold;
-    font-size: 18px;
-    margin-bottom: 5px;
-}
-
-.stat-value {
-    font-size: 28px;
-    font-weight: bold;
-    margin: 5px 0;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.stat-label {
-    font-size: 14px;
-    opacity: 0.8;
-}
-
-.matchup-vs {
-    font-size: 22px;
-    font-weight: bold;
-    color: #f39c12;
-    text-shadow: 0 0 10px rgba(243, 156, 18, 0.5);
-}
-
-.match-status {
-    font-size: 20px;
-    font-weight: bold;
-    padding: 15px;
-    border-radius: 10px;
-    margin-top: 20px;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-.match-status-équilibré {
-    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-}
-
-.match-status-légèrement-déséquilibré {
-    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-}
-
-.match-status-fortement-déséquilibré {
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-}
-
-/* Power-up de soin amélioré */
-.heal-powerup-btn {
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-    color: white;
-    border: none;
-    padding: 12px 15px;
-    border-radius: 10px;
-    cursor: pointer;
-    margin: 15px 0;
-    font-weight: bold;
-    font-size: 16px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    width: 100%;
-    position: relative;
-    z-index: 1;
-    overflow: hidden;
-}
-
-.heal-powerup-btn:before {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, #ff5f6d 0%, #ffc371 100%);
-    transform: scaleX(0);
-    transform-origin: 0 50%;
-    transition: transform 0.5s ease-out;
-    border-radius: 10px;
-}
-
-.heal-powerup-btn:hover:before {
-    transform: scaleX(1);
-}
-
-.heal-powerup-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-}
-
-.heal-powerup-btn.used {
-    background: #7f8c8d;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.heal-info {
-    font-size: 12px;
-    opacity: 0.8;
-}
-
-/* Message de confirmation de soin */
-.heal-message {
-    background-color: #2ecc71;
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    text-align: center;
-    font-weight: bold;
-    margin: 10px 0;
-    animation: fadeInOut 3s forwards;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-@keyframes fadeInOut {
-    0% { opacity: 0; transform: translateY(-10px); }
-    20% { opacity: 1; transform: translateY(0); }
-    80% { opacity: 1; }
-    100% { opacity: 0; }
-}
-
-/* Animation de soin */
-@keyframes heal-flash {
-    0% { background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%); }
-    50% { background: linear-gradient(90deg, #00ff00 0%, #66ff66 100%); box-shadow: 0 0 20px rgba(46, 204, 113, 0.8); }
-    100% { background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%); }
-}
-
-.heal-animation {
-    animation: heal-flash 1s ease-in-out;
-}
-
-/* Style pour les stats boostées */
-.boost-message {
-    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-    color: white;
-    padding: 12px;
-    border-radius: 8px;
-    text-align: center;
-    font-weight: bold;
-    margin: 15px 0;
-    /* Animation supprimée */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.boosted-stat {
-    color: #2ecc71;
-    font-weight: bold;
-}
-
-/* Animation toujours définie mais plus utilisée */
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.03); }
-    100% { transform: scale(1); }
-}
-
-/* Style pour la moyenne des stats à côté du nom du héros */
-.hero-avg-stats {
-    display: inline-block;
-    font-size: 0.8em;
-    color: #3498db;
-    font-weight: bold;
-    background-color: rgba(52, 152, 219, 0.1);
-    border-radius: 4px;
-    padding: 2px 6px;
-    margin-left: 8px;
-    vertical-align: middle;
-    border: 1px solid rgba(52, 152, 219, 0.3);
-    white-space: nowrap;
-}
-
 /* Style pour le bouton de changement de rôle */
 .role-switch-btn {
     margin-top: 20px;
@@ -1114,4 +724,88 @@ h2 {
 @keyframes fadeIn {
     from { opacity: 0; transform: translate(-50%, 20px); }
     to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.power-up-btn {
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 10px 0;
+    font-weight: bold;
+    width: 100%;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.power-up-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.power-up-btn[data-used="true"] {
+    background: #7f8c8d;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.power-up-description {
+    display: block;
+    font-size: 0.8em;
+    opacity: 0.8;
+    margin-top: 5px;
+}
+
+.power-up-message {
+    background-color: rgba(52, 152, 219, 0.9);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 5px 0;
+    text-align: center;
+    animation: fadeIn 0.3s ease-in;
+}
+
+/* Style pour les stats temporairement boostées */
+.stat-boosted-temp {
+    background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    animation: glowPulse 2s infinite;
+}
+
+@keyframes glowPulse {
+    0% { box-shadow: 0 0 5px rgba(243, 156, 18, 0.4); }
+    50% { box-shadow: 0 0 15px rgba(243, 156, 18, 0.6); }
+    100% { box-shadow: 0 0 5px rgba(243, 156, 18, 0.4); }
+}
+
+.stat-boost-value {
+    display: inline-block;
+    color: #f1c40f;
+    font-weight: bold;
+    margin-left: 5px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Amélioration du message de boost */
+.power-up-message {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+    text-align: center;
+    animation: slideInFadeOut 3s ease-in-out forwards;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    font-weight: bold;
+}
+
+@keyframes slideInFadeOut {
+    0% { opacity: 0; transform: translateY(-10px); }
+    10% { opacity: 1; transform: translateY(0); }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
 }

@@ -708,6 +708,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Afficher le bouton "Changer de rôle" et le compteur de tour une fois le combat commencé
         roleSwitchBtn.style.display = 'block';
         turnCounterDisplay.style.display = 'block';
+
+        // Dans la fonction de démarrage du combat
+        assignRandomPowerUp(1); // Pour le joueur 1
+        assignRandomPowerUp(2); // Pour le joueur 2
     });
 
     // Bouton pour changer de rôle
@@ -767,13 +771,39 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         
         // Calculer les dégâts
-        const valeurAttaque = getStatValue(heroAttaquant, attaqueChoisie.pouvoir) * attaqueChoisie.modificateur;
-        const valeurDefense = getStatValue(heroDefenseur, defenseChoisie.pouvoir) * defenseChoisie.modificateur;
+        let valeurAttaque = getStatValue(heroAttaquant, attaqueChoisie.pouvoir) * attaqueChoisie.modificateur;
+        let valeurDefense = getStatValue(heroDefenseur, defenseChoisie.pouvoir) * defenseChoisie.modificateur;
         degats_faiblesse=0;
         // Calculer les dégâts finaux
         let degats = Math.max(0, Math.floor(valeurAttaque - valeurDefense));
         console.log(degats);
         degats_initiaux=degats;
+        // Calculer les dégâts avec les power-ups
+        // Appliquer les power-ups d'attaque
+        if (activeAttackPowerUp) {
+            console.log(`Power-up d'attaque actif: ${activeAttackPowerUp.name}`);
+            switch(activeAttackPowerUp.name) {
+                case "Frappe Dévastatrice":
+                    valeurAttaque = activeAttackPowerUp.effect(valeurAttaque);
+                    console.log(`Valeur d'attaque doublée: ${valeurAttaque}`);
+                    break;
+                case "Expert des Faiblesses":
+                    const oldDegats = degats;
+                    degats = activeAttackPowerUp.effect(degats, attaqueChoisie.pouvoir, defenseChoisie.pouvoir);
+                    console.log(`Dégâts modifiés par Expert des Faiblesses: ${oldDegats} → ${degats}`);
+                    break;
+                // ... autres cas
+            }
+            activeAttackPowerUp = null;
+        }
+
+        if (activeDefensePowerUp) {
+            console.log(`Power-up de défense actif: ${activeDefensePowerUp.name}`);
+            const oldDefense = valeurDefense;
+            valeurDefense = activeDefensePowerUp.effect(valeurDefense);
+            console.log(`Valeur de défense modifiée: ${oldDefense} → ${valeurDefense}`);
+            activeDefensePowerUp = null;
+        }
         // Appliquer les dégâts
         degats = calculerDegats(degats, attaqueChoisie.pouvoir, defenseChoisie.pouvoir);
         console.log(degats);
@@ -826,5 +856,199 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Définition des power-ups
+    const powerUps = {
+        HEAL: {
+            name: "Soin Rapide",
+            icon: "💖",
+            description: "Restaure 50 PV instantanément",
+            effect: (playerIndex) => {
+                if (playerIndex === 1) {
+                    player1HP = Math.min(maxHP, player1HP + 50);
+                } else {
+                    player2HP = Math.min(maxHP, player2HP + 50);
+                }
+                updateHPBars();
+            }
+        },
+        DOUBLE_ATTACK: {
+            name: "Frappe Dévastatrice",
+            icon: "⚔️",
+            description: "Double les dégâts de votre prochaine attaque",
+            effect: (valeurAttaque) => valeurAttaque * 2
+        },
+        DOUBLE_DEFENSE: {
+            name: "Mur de Fer",
+            icon: "🛡️",
+            description: "Double l'efficacité de votre prochaine défense",
+            effect: (valeurDefense) => valeurDefense * 2
+        },
+        STAT_BOOST: {
+            name: "Boost Aléatoire",
+            icon: "⚡",
+            description: "Augmente une statistique aléatoire de 50 points pour 1 tour",
+            effect: (hero) => {
+                const stats = Object.keys(hero.powerstats);
+                const randomStat = stats[Math.floor(Math.random() * stats.length)];
+                hero.powerstats[randomStat] = parseInt(hero.powerstats[randomStat]) + 50;
+                return randomStat;
+            }
+        },
+        WEAKNESS_EXPLOIT: {
+            name: "Expert des Faiblesses",
+            icon: "🎯",
+            description: "Double les dégâts si vous exploitez une faiblesse",
+            effect: (degats, typeAttaque, typeDefense) => {
+                return faiblesses[typeDefense] === typeAttaque ? degats * 2 : degats;
+            }
+        },
+        VAMPIRISM: {
+            name: "Drain Vital",
+            icon: "🧛",
+            description: "Récupère 50% des dégâts infligés en PV",
+            effect: (playerIndex, degats) => {
+                const heal = Math.floor(degats * 0.5);
+                if (playerIndex === 1) {
+                    player1HP = Math.min(maxHP, player1HP + heal);
+                } else {
+                    player2HP = Math.min(maxHP, player2HP + heal);
+                }
+                updateHPBars();
+            }
+        },
+        MIRROR_FORCE: {
+            name: "Riposte",
+            icon: "🪞",
+            description: "Renvoie 30% des dégâts à l'attaquant",
+            effect: (attaquant, degats) => {
+                const mirrorDamage = Math.floor(degats * 0.3);
+                if (attaquant === 1) {
+                    player1HP = Math.max(0, player1HP - mirrorDamage);
+                } else {
+                    player2HP = Math.max(0, player2HP - mirrorDamage);
+                }
+                updateHPBars();
+            }
+        },
+        ULTIMATE_MOVE: {
+            name: "Coup Ultimate",
+            icon: "🌟",
+            description: "Utilise la plus haute statistique pour l'attaque ou la défense",
+            effect: (hero) => {
+                const stats = Object.entries(hero.powerstats);
+                return Math.max(...stats.map(([_, value]) => parseInt(value)));
+            }
+        }
+    };
+
+    // Ajoutez ces variables au début du fichier pour suivre les power-ups actifs
+    let activeAttackPowerUp = null;
+    let activeDefensePowerUp = null;
+
+    // Modifiez la fonction assignRandomPowerUp
+    function assignRandomPowerUp(playerIndex) {
+        const availablePowerUps = Object.entries(powerUps);
+        const randomPowerUp = availablePowerUps[Math.floor(Math.random() * availablePowerUps.length)];
+        
+        const powerUpButton = document.createElement('button');
+        powerUpButton.className = 'power-up-btn';
+        powerUpButton.innerHTML = `
+            ${randomPowerUp[1].icon} ${randomPowerUp[1].name}
+            <span class="power-up-description">${randomPowerUp[1].description}</span>
+        `;
+        powerUpButton.setAttribute('data-used', 'false');
+        
+        // Ajouter l'événement de clic
+        powerUpButton.addEventListener('click', () => {
+            if (powerUpButton.getAttribute('data-used') === 'true') {
+                return; // Power-up déjà utilisé
+            }
+
+            // Vérifier si c'est le bon moment pour utiliser le power-up
+            const isAttackPowerUp = ['DOUBLE_ATTACK', 'WEAKNESS_EXPLOIT', 'VAMPIRISM', 'ULTIMATE_MOVE'].includes(randomPowerUp[0]);
+            const isDefensePowerUp = ['DOUBLE_DEFENSE', 'MIRROR_FORCE'].includes(randomPowerUp[0]);
+            const isUtilityPowerUp = ['HEAL', 'STAT_BOOST'].includes(randomPowerUp[0]);
+
+            const isPlayerAttacking = (playerIndex === 1 && player1Role === 'Attaquant') || 
+                                    (playerIndex === 2 && player2Role === 'Attaquant');
+            const isPlayerDefending = (playerIndex === 1 && player1Role === 'Défenseur') || 
+                                    (playerIndex === 2 && player2Role === 'Défenseur');
+
+            if (isAttackPowerUp && !isPlayerAttacking) {
+                alert("Ce power-up ne peut être utilisé que pendant votre tour d'attaque!");
+                console.log(`${playerIndex === 1 ? player1Name : player2Name} a tenté d'utiliser un power-up d'attaque pendant la défense`);
+                return;
+            }
+
+            if (isDefensePowerUp && !isPlayerDefending) {
+                alert("Ce power-up ne peut être utilisé que pendant votre tour de défense!");
+                console.log(`${playerIndex === 1 ? player1Name : player2Name} a tenté d'utiliser un power-up de défense pendant l'attaque`);
+                return;
+            }
+
+            // Activer le power-up en fonction de son type
+            console.log(`${playerIndex === 1 ? player1Name : player2Name} active le power-up ${randomPowerUp[1].name}`);
+
+            switch(randomPowerUp[0]) {
+                case 'HEAL':
+                    randomPowerUp[1].effect(playerIndex);
+                    console.log(`${playerIndex === 1 ? player1Name : player2Name} se soigne de 50 PV`);
+                    break;
+                case 'DOUBLE_ATTACK':
+                    activeAttackPowerUp = randomPowerUp[1];
+                    console.log(`${playerIndex === 1 ? player1Name : player2Name} double ses dégâts pour la prochaine attaque`);
+                    break;
+                case 'DOUBLE_DEFENSE':
+                    activeDefensePowerUp = randomPowerUp[1];
+                    console.log(`${playerIndex === 1 ? player1Name : player2Name} double sa défense pour le prochain tour`);
+                    break;
+                case 'STAT_BOOST':
+                    const boostedStat = randomPowerUp[1].effect(playerIndex === 1 ? hero1 : hero2);
+                    console.log(`${playerIndex === 1 ? player1Name : player2Name} augmente sa statistique ${boostedStat} de 50 points`);
+                    displayHeroInBattle(playerIndex === 1 ? hero1 : hero2, playerIndex, true);
+                    break;
+                case 'WEAKNESS_EXPLOIT':
+                    activeAttackPowerUp = randomPowerUp[1];
+                    console.log(`${playerIndex === 1 ? player1Name : player2Name} active l'exploitation des faiblesses`);
+                    break;
+                case 'VAMPIRISM':
+                    activeAttackPowerUp = randomPowerUp[1];
+                    console.log(`${playerIndex === 1 ? player1Name : player2Name} active le drain vital`);
+                    break;
+                case 'MIRROR_FORCE':
+                    activeDefensePowerUp = randomPowerUp[1];
+                    console.log(`${playerIndex === 1 ? player1Name : player2Name} active la riposte`);
+                    break;
+                case 'ULTIMATE_MOVE':
+                    activeAttackPowerUp = randomPowerUp[1];
+                    console.log(`${playerIndex === 1 ? player1Name : player2Name} prépare son coup ultime`);
+                    break;
+            }
+
+            // Marquer le power-up comme utilisé
+            powerUpButton.setAttribute('data-used', 'true');
+            powerUpButton.style.opacity = '0.5';
+            powerUpButton.style.cursor = 'not-allowed';
+
+            // Afficher un message de confirmation
+            const confirmMessage = document.createElement('div');
+            confirmMessage.className = 'power-up-message';
+            confirmMessage.textContent = `${randomPowerUp[1].name} activé!`;
+            powerUpButton.parentNode.insertBefore(confirmMessage, powerUpButton.nextSibling);
+
+            // Supprimer le message après 2 secondes
+            setTimeout(() => {
+                if (confirmMessage.parentNode) {
+                    confirmMessage.parentNode.removeChild(confirmMessage);
+                }
+            }, 2000);
+        });
+        
+        // Ajouter le bouton au conteneur du joueur
+        const container = document.getElementById(`hero-info-${playerIndex}`);
+        container.insertAdjacentElement('afterbegin', powerUpButton);
+        
+        return randomPowerUp[1];
+    }
 
 });
