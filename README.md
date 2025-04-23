@@ -72,6 +72,7 @@ ZABI/
 
 - Node.js (version 14+ recommandée)
 - npm
+- MongoDB
 
 ---
 
@@ -88,6 +89,12 @@ npm install
 # 3. Lance le serveur
 node server.js
 ```
+## Mise en place de la base de données : 
+
+- Créer une connexion sur le port 27017 sur MongoDB
+- Créer une base de données **ZABI**
+- Créer une collection SuperHeros et y importer le fichier SuperHerosComplet.json
+- Créer une collection InvalidID et y importer le fichier ZABI.InvalidID.json 
 
 ➡️ Le serveur tourne par défaut sur :  
 📍 `http://localhost:3000`
