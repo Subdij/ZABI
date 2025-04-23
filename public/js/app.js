@@ -1081,7 +1081,7 @@ boostSlot.appendChild(boostMessage);
         });
 
         // Attendre la fin de l'animation
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Supprimer l'animation
         battleAnimation.remove();
