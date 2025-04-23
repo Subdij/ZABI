@@ -5,91 +5,111 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZABI - Duel de Superhéros</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h1>Duel de Superhéros</h1>
-        
-        <!-- Étape 1: Écran d'accueil avec bouton Play -->
+        <h1><span class="title-highlight">Duel</span> de Superhéros</h1>
+
         <div id="welcome-screen">
             <button id="play-btn" class="btn-primary">Play</button>
         </div>
-        
-        <!-- Étape 2: Formulaire combiné pour les deux joueurs -->
+
         <div id="players-input" class="players-form" style="display: none;">
             <h2>Entrez vos pseudos</h2>
-            
             <div class="player-row">
                 <div class="player-field">
                     <label for="player1-name">Joueur 1</label>
                     <input type="text" id="player1-name" placeholder="Pseudo joueur 1" class="player-name-input">
                 </div>
-                
                 <div class="player-field">
                     <label for="player2-name">Joueur 2</label>
                     <input type="text" id="player2-name" placeholder="Pseudo joueur 2" class="player-name-input">
                 </div>
             </div>
-            
             <button id="start-battle" class="btn-confirm">Commencer le Combat</button>
         </div>
-        
-        <!-- Étape 3: Combat de superhéros -->
-        <div class="battle-container" id="battle-container">
-            <!-- Héros gauche (Joueur 1) -->
-            <div class="hero-info" id="hero-info-1">
-                <div class="player-title" id="player1-display">Joueur 1</div>
-                <h2 id="hero-name-1">Nom du Superhéros</h2>
-                
-                <!-- Ajout de la barre de PV pour le joueur 1 -->
-                <div class="hp-container">
-                    <div class="hp-bar-wrapper">
-                        <div class="hp-bar" id="hp-bar-1"></div>
-                    </div>
-                    <div class="hp-text" id="hp-text-1">1000 / 1000 PV</div>
-                </div>
-                
-                <img id="hero-image-1" src="" alt="Image du Superhéros" class="hero-image">
-                
-                <h3>Attaques</h3>
-                <div id="attack-container-1" class="attack-container"></div>
-                
-                <h3>Défenses</h3>
-                <div id="defense-container-1" class="defense-container"></div>
-                
-                <h3>Caractéristiques</h3>
-                <div class="stat-grid" id="powerstats-1">
-                    <!-- Les statistiques seront insérées ici -->
-                </div>
-            </div>
-            
-            <!-- VS au milieu -->
-            <div class="vs">VS</div>
-            
-            <!-- Héros droit (Joueur 2) -->
-            <div class="hero-info" id="hero-info-2">
-                <div class="player-title" id="player2-display">Joueur 2</div>
-                <h2 id="hero-name-2">Nom du Superhéros</h2>
-                
-                <!-- Ajout de la barre de PV pour le joueur 2 -->
-                <div class="hp-container">
-                    <div class="hp-bar-wrapper">
-                        <div class="hp-bar" id="hp-bar-2"></div>
-                    </div>
-                    <div class="hp-text" id="hp-text-2">1000 / 1000 PV</div>
-                </div>
-                
-                <img id="hero-image-2" src="" alt="Image du Superhéros" class="hero-image">
-                
-                <h3>Attaques</h3>
-                <div id="attack-container-2" class="attack-container"></div>
 
-                <h3>Défenses</h3>
-                <div id="defense-container-2" class="defense-container"></div>
+        <div class="battle-container" id="battle-container" style="display: none;">
+            <div class="battle-hud-row">
 
-                <h3>Caractéristiques</h3>
-                <div class="stat-grid" id="powerstats-2">
-                    <!-- Les statistiques seront insérées ici -->
+                <div id="hero-info-1" class="hero-info side-left">
+                    <div class="player-status-area">
+                        <div id="player1-display" class="player-title">Joueur 1 - ...</div>
+                        <div class="hp-container" id="hp-container-1">
+                            <div class="hp-bar-wrapper">
+                                <div class="hp-bar" id="hp-bar-1"></div>
+                            </div>
+                            <div class="hp-text" id="hp-text-1">1000 / 1000 PV</div>
+                            
+                        </div>
+
+                    </div>
+                    <div class="bonus-slot">
+                        <div id="powerup-slot-1" class="powerup-slot"></div>
+                        <div id="boost-slot-1" class="boost-slot"></div>
+                     </div>
+                    <h2 id="hero-name-1">Nom du Superhéros</h2>
+                    <div class="hero-details-row">
+                         <div class="hero-image-wrapper">
+                            <img id="hero-image-1" class="hero-image" src="" alt="Héros 1">
+                         </div>
+                         <div class="hero-stats-column">
+                            <h3>Caractéristiques</h3>
+                            <div class="stat-grid" id="powerstats-1"></div>
+                         </div>
+                    </div>
+                    <div class="actions-area">
+                        <div class="action-block attack-block">
+                             <h3>Attaques</h3>
+                             <div id="attack-container-1" class="attack-container"></div>
+                        </div>
+                        <div class="action-block defense-block">
+                            <h3>Défenses</h3>
+                            <div id="defense-container-1" class="defense-container"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="vs">VS</div>
+
+                <div id="hero-info-2" class="hero-info side-right">
+                     <div class="player-status-area">
+                         <div id="player2-display" class="player-title">Joueur 2 - ...</div>
+                         <div class="hp-container" id="hp-container-2">
+                             <div class="hp-bar-wrapper">
+                                 <div class="hp-bar" id="hp-bar-2"></div>
+                             </div>
+                             <div class="hp-text" id="hp-text-2">1000 / 1000 PV</div>
+                             
+                         </div>
+                         
+
+                     </div>
+                     <div class="bonus-slot">
+                        <div id="powerup-slot-2" class="powerup-slot"></div>
+                        <div id="boost-slot-2" class="boost-slot"></div>
+                     </div>
+                    <h2 id="hero-name-2">Nom du Superhéros</h2>
+                    <div class="hero-details-row">
+                        <div class="hero-image-wrapper">
+                            <img id="hero-image-2" class="hero-image" src="" alt="Héros 2">
+                        </div>
+                         <div class="hero-stats-column">
+                            <h3>Caractéristiques</h3>
+                            <div class="stat-grid" id="powerstats-2"></div>
+                         </div>
+                    </div>
+                     <div class="actions-area">
+                        <div class="action-block attack-block">
+                             <h3>Attaques</h3>
+                             <div id="attack-container-2" class="attack-container"></div>
+                        </div>
+                        <div class="action-block defense-block">
+                             <h3>Défenses</h3>
+                             <div id="defense-container-2" class="defense-container"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -108,7 +128,13 @@
             </div>
         </div>
     </div>
-
+    <div id="victory-popup" class="victory-popup hidden">
+        <div class="victory-content">
+          <h2 id="victory-message">Victoire de Joueur 1 !</h2>
+          <button class="btn-confirm" onclick="location.reload()">Rejouer</button>
+        </div>
+      </div>
+      
     <script src="/js/app.js"></script>
 </body>
 </html>
