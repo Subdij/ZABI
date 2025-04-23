@@ -353,18 +353,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Si la défense est faible contre l’attaque
         if (faiblesses[typeDefense] === typeAttaque) {
             degats_faiblesse = 20;
-          console.log("ici");
           return baseDegats + 20;
         }
       
         // Si l’attaque est faible contre la défense
         if (faiblesses[typeAttaque] === typeDefense) {
             degats_faiblesse = -20;
-            console.log("ici2");
           return baseDegats - 20;
           
         }
-        console.log("ici3");
         // Sinon dégâts normaux
         return baseDegats;
       }
@@ -807,11 +804,9 @@ boostSlot.appendChild(boostMessage);
         degats_faiblesse=0;
         // Calculer les dégâts finaux
         let degats = Math.max(0, Math.floor(valeurAttaque - valeurDefense));
-        console.log(degats);
         degats_initiaux=degats;
         // Appliquer les dégâts
         degats = calculerDegats(degats, attaqueChoisie.pouvoir, defenseChoisie.pouvoir);
-        console.log(degats);
         dealDamage(defenseur, degats);
         
         // Ajouter le message au tableau d'historique

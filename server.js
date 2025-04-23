@@ -228,7 +228,6 @@ function list_attack(){
     fs.readFile('pouvoirs/attaques.json', function(err, data) { 
         if (err) throw err; 
         attacks = JSON.parse(data); 
-        console.log("Liste des attaques :" + JSON.stringify(attacks)); 
     }); 
 }
 
