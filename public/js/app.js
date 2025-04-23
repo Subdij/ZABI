@@ -695,6 +695,16 @@ boostSlot.appendChild(boostMessage);
 
         // Afficher le bouton "Historique" une fois le combat commencé
         historyBtn.style.display = 'block';
+
+        // Créer les boutons de validation pour chaque joueur
+        createValidationButton(1);
+        createValidationButton(2);
+        
+        // Initialiser l'interface pour le premier tour
+        updatePhaseDisplay();
+        
+        // Ajouter cette ligne pour initialiser les listeners
+        setupValidationListeners();
     });
 
     // Bouton pour changer de rôle
@@ -869,5 +879,306 @@ boostSlot.appendChild(boostMessage);
         }
     }
 
+    // Nouvelles variables pour le tour
+    let currentPhase = 'attacker'; // 'attacker' ou 'defender'
+    let attackerChoice = null;
+    let defenderChoice = null;
+
+    // Fonction pour créer un bouton de validation
+    function createValidationButton(index) {
+        const existingButton = document.getElementById(`validate-btn-${index}`);
+        if (existingButton) {
+            existingButton.remove();
+        }
+
+        const button = document.createElement('button');
+        button.id = `validate-btn-${index}`;
+        button.className = 'btn-primary validate-action-btn';
+        button.textContent = 'Valider';
+        button.style.display = 'none';
+        
+        // Modification: Ajouter le bouton dans le conteneur approprié selon le rôle
+        if ((index === 1 && player1Role === 'Attaquant') || (index === 2 && player2Role === 'Attaquant')) {
+            const attackContainer = document.getElementById(`attack-container-${index}`);
+            attackContainer.appendChild(button);
+        } else {
+            const defenseContainer = document.getElementById(`defense-container-${index}`);
+            defenseContainer.appendChild(button);
+        }
+        
+        return button;
+    }
+
+    // Fonction pour mettre à jour l'interface en fonction de la phase
+    function updatePhaseDisplay() {
+        const attaquant = player1Role === 'Attaquant' ? 1 : 2;
+        const defenseur = attaquant === 1 ? 2 : 1;
+        
+        const validateAttacker = document.getElementById(`validate-btn-${attaquant}`);
+        const validateDefender = document.getElementById(`validate-btn-${defenseur}`);
+        
+        const attackSelect = document.getElementById(`attack-select-${attaquant}`);
+        const defenseSelect = document.getElementById(`defense-select-${defenseur}`);
+        
+        // Désactiver TOUS les contrôles d'abord
+        document.querySelectorAll('.attack-select, .defense-select').forEach(select => {
+            select.disabled = true;
+            select.style.opacity = '0.3';
+            select.style.pointerEvents = 'none';
+            select.style.cursor = 'not-allowed';
+        });
+        
+        // Masquer tous les boutons de validation
+        if (validateAttacker) validateAttacker.style.display = 'none';
+        if (validateDefender) validateDefender.style.display = 'none';
+        
+        // Activer UNIQUEMENT le contrôle de la phase actuelle
+        if (currentPhase === 'attacker') {
+            if (attackSelect) {
+                attackSelect.disabled = false;
+                attackSelect.style.opacity = '1';
+                attackSelect.style.pointerEvents = 'auto';
+                attackSelect.style.cursor = 'pointer';
+            }
+            if (validateAttacker) validateAttacker.style.display = 'block';
+            displayTurnMessage(`C'est au tour de ${attaquant === 1 ? player1Name : player2Name} d'attaquer!`);
+        } else if (currentPhase === 'defender') {
+            if (defenseSelect) {
+                defenseSelect.disabled = false;
+                defenseSelect.style.opacity = '1';
+                defenseSelect.style.pointerEvents = 'auto';
+                defenseSelect.style.cursor = 'pointer';
+            }
+            if (validateDefender) validateDefender.style.display = 'block';
+            displayTurnMessage(`C'est au tour de ${defenseur === 1 ? player1Name : player2Name} de défendre!`);
+        }
+    }
+
+    // Fonction pour afficher un message de tour
+    function displayTurnMessage(message) {
+        const existingMessage = document.querySelector('.turn-message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+
+        const messageElement = document.createElement('div');
+        messageElement.className = 'turn-message';
+        messageElement.textContent = message;
+        turnCounterDisplay.insertAdjacentElement('afterend', messageElement);
+    }
+
+    // Modification de la fonction startBattle
+    startBattleBtn.addEventListener('click', async () => {
+        // ...existing code...
+
+        // Créer les boutons de validation pour chaque joueur
+        createValidationButton(1);
+        createValidationButton(2);
+        
+        // Initialiser l'interface pour le premier tour
+        updatePhaseDisplay();
+    });
+
+    // Remplacer l'ancien event listener du roleSwitchBtn par la nouvelle logique de validation
+    function setupValidationListeners() {
+        const attaquant = player1Role === 'Attaquant' ? 1 : 2;
+        const defenseur = attaquant === 1 ? 2 : 1;
+        
+        const validateAttacker = document.getElementById(`validate-btn-${attaquant}`);
+        const validateDefender = document.getElementById(`validate-btn-${defenseur}`);
+
+        // Obtenir les sélecteurs actuels
+        const attackSelect = document.getElementById(`attack-select-${attaquant}`);
+        const defenseSelect = document.getElementById(`defense-select-${defenseur}`);
+        
+        if (validateAttacker) {
+            validateAttacker.onclick = () => {
+                if (attackSelect && attackSelect.value) {
+                    attackerChoice = attackSelect.value;
+                    currentPhase = 'defender';
+                    updatePhaseDisplay();
+                }
+            };
+        }
+        
+        if (validateDefender) {
+            validateDefender.onclick = async () => {
+                if (defenseSelect && defenseSelect.value) {
+                    defenderChoice = defenseSelect.value;
+                    
+                    // Exécuter le tour
+                    await executeTurn();
+                    
+                    // Réinitialiser pour le prochain tour
+                    attackerChoice = null;
+                    defenderChoice = null;
+                    currentPhase = 'attacker';
+                    
+                    // Inverser les rôles
+                    [player1Role, player2Role] = [player2Role, player1Role];
+                    
+                    // Recréer les boutons de validation avec les nouveaux rôles
+                    createValidationButton(1);
+                    createValidationButton(2);
+                    
+                    // Mettre à jour l'interface
+                    updateRoleDisplay();
+                    setupValidationListeners();
+                    updatePhaseDisplay();
+                    
+                    // Incrémenter le tour
+                    turnCounter++;
+                    turnCounterDisplay.textContent = `Tour : ${turnCounter}`;
+                }
+            };
+        }
+    }
+
+    async function executeTurn() {
+        const attaquant = player1Role === 'Attaquant' ? 1 : 2;
+        const defenseur = attaquant === 1 ? 2 : 1;
+        
+        const [attaques, defenses] = await Promise.all([fetchAttacks(), fetchDefenses()]);
+        
+        const attaqueChoisie = attaques.find(a => a.name === attackerChoice);
+        const defenseChoisie = defenses.find(d => d.name === defenderChoice);
+        
+        if (!attaqueChoisie || !defenseChoisie) {
+            console.error('Choix invalide:', { attaqueChoisie, defenseChoisie });
+            return;
+        }
+
+        // Créer l'animation de combat
+        const battleAnimation = document.createElement('div');
+        battleAnimation.className = 'battle-animation';
+        const content = document.createElement('div');
+        content.className = 'battle-animation-content';
+        content.textContent = '⚔️ Combat! ⚔️';
+        battleAnimation.appendChild(content);
+        document.body.appendChild(battleAnimation);
+
+        // Attendre la fin de l'animation
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Supprimer l'animation
+        battleAnimation.remove();
+        
+        // La suite du code de combat...
+        const heroAttaquant = document.getElementById(`powerstats-${attaquant}`);
+        const heroDefenseur = document.getElementById(`powerstats-${defenseur}`);
+        
+        const valeurAttaque = getStatValue(heroAttaquant, attaqueChoisie.pouvoir) * attaqueChoisie.modificateur;
+        const valeurDefense = getStatValue(heroDefenseur, defenseChoisie.pouvoir) * defenseChoisie.modificateur;
+        
+        degats_faiblesse = 0;
+        let degats = Math.max(0, Math.floor(valeurAttaque - valeurDefense));
+        degats_initiaux = degats;
+        degats = calculerDegats(degats, attaqueChoisie.pouvoir, defenseChoisie.pouvoir);
+        
+        // Appliquer les dégâts
+        dealDamage(defenseur, degats);
+        
+        // Créer et afficher le message de combat
+        const message = `
+            <strong>${attaquant === 1 ? player1Name : player2Name}</strong> utilise ${attaqueChoisie.name} (${Math.floor(valeurAttaque)} pts)
+            <br>
+            <strong>${defenseur === 1 ? player1Name : player2Name}</strong> se défend avec ${defenseChoisie.name} (${Math.floor(valeurDefense)} pts)
+            ${degats_faiblesse !== 0 ? `
+                <br> Dégâts initiaux : ${degats_initiaux} <br>
+                Dégâts de faiblesse : ${degats_faiblesse > 0 ? '+' : ''}${degats_faiblesse}` : ''}
+            <br>
+            Dégâts infligés : ${degats}
+        `;
+        
+        addToHistory(message);
+        
+        // Afficher le message de combat après l'animation
+        const combatMessage = document.createElement('div');
+        combatMessage.className = 'combat-message';
+        combatMessage.innerHTML = message;
+        battleContainer.insertAdjacentElement('beforeend', combatMessage);
+        
+        // Attendre que le message soit lu
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        if (battleContainer.contains(combatMessage)) {
+            battleContainer.removeChild(combatMessage);
+        }
+    }
+
+    // Supprimer l'ancien roleSwitchBtn car il n'est plus nécessaire
+    if (roleSwitchBtn) {
+        roleSwitchBtn.remove();
+    }
+
+    setupValidationListeners();
+
+    // Déplacer getStatValue à l'intérieur du scope principal
+    function getStatValue(container, statName) {
+        const statElements = container.querySelectorAll('.stat-item');
+        for (const element of statElements) {
+            const nameElement = element.querySelector('.stat-name');
+            if (nameElement && nameElement.textContent.toLowerCase().includes(statName.toLowerCase())) {
+                const valueElement = element.querySelector('span:last-child');
+                
+                if (valueElement.innerHTML.includes('(+')) {
+                    const originalValue = parseInt(valueElement.textContent.split('(')[0].trim());
+                    const boostMatch = valueElement.innerHTML.match(/\(\+(\d+)\)/);
+                    const boostValue = boostMatch ? parseInt(boostMatch[1]) : 0;
+                    return originalValue + boostValue;
+                } else {
+                    return parseInt(valueElement.textContent);
+                }
+            }
+        }
+        return 0;
+    }
+
+    // Déplacer setupValidationListeners à l'intérieur du scope principal
+    function setupValidationListeners() {
+        const attaquant = player1Role === 'Attaquant' ? 1 : 2;
+        const defenseur = attaquant === 1 ? 2 : 1;
+        
+        const validateAttacker = document.getElementById(`validate-btn-${attaquant}`);
+        const validateDefender = document.getElementById(`validate-btn-${defenseur}`);
+        
+        if (validateAttacker) {
+            validateAttacker.onclick = () => {
+                const attackSelect = document.getElementById(`attack-select-${attaquant}`);
+                if (!attackSelect || !attackSelect.value) return;
+                
+                attackerChoice = attackSelect.value;
+                currentPhase = 'defender';
+                updatePhaseDisplay();
+            };
+        }
+        
+        if (validateDefender) {
+            validateDefender.onclick = async () => {
+                const defenseSelect = document.getElementById(`defense-select-${defenseur}`);
+                if (!defenseSelect || !defenseSelect.value) return;
+                
+                defenderChoice = defenseSelect.value;
+                await executeTurn();
+                
+                // Réinitialiser pour le prochain tour
+                attackerChoice = null;
+                defenderChoice = null;
+                currentPhase = 'attacker';
+                
+                // Inverser les rôles et mettre à jour l'interface
+                [player1Role, player2Role] = [player2Role, player1Role];
+                updateRoleDisplay();
+                createValidationButton(1);
+                createValidationButton(2);
+                setupValidationListeners();
+                
+                // Incrémenter le compteur de tour
+                turnCounter++;
+                turnCounterDisplay.textContent = `Tour : ${turnCounter}`;
+                updatePhaseDisplay();
+            };
+        }
+    }
 
 });
