@@ -391,9 +391,18 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Vérifier si un joueur est KO
         if (player1HP <= 0) {
-            alert(`${player2Name} a gagné le combat!`);
+            const popup = document.getElementById('victory-popup');
+            const message = document.getElementById('victory-message');
+            message.textContent = `Victoire de ${player2Name} !`;
+            popup.classList.add('show');
+
+
         } else if (player2HP <= 0) {
-            alert(`${player1Name} a gagné le combat!`);
+            const popup = document.getElementById('victory-popup');
+            const message = document.getElementById('victory-message');
+            message.textContent = `Victoire de ${player1Name} !`;
+            popup.classList.add('show');
+
         }
         return damage;
     }
@@ -498,7 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (document.body.contains(matchupElement)) {
                 document.body.removeChild(matchupElement);
             }
-        }, 5000);
+        }, 3000);
         
         // Stocker l'ID du timeout sur l'élément pour pouvoir l'annuler si nécessaire
         matchupElement.dataset.timeoutId = timeoutId;
@@ -506,62 +515,59 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Fonction pour ajouter un power-up de soin
     function addHealingPowerUp(playerIndex) {
-        // Supprimer tout bouton de heal existant pour éviter les doublons
         const existingButton = document.getElementById(`heal-powerup-${playerIndex}`);
         if (existingButton) {
             existingButton.remove();
         }
-        
-        const powerupContainer = document.getElementById(`hero-info-${playerIndex}`);
+    
+        const powerupSlot = document.getElementById(`powerup-slot-${playerIndex}`);
         const healButton = document.createElement('button');
         healButton.id = `heal-powerup-${playerIndex}`;
         healButton.className = 'heal-powerup-btn';
         healButton.innerHTML = '💖 SOIN D\'URGENCE <span class="heal-info">(utilisable une fois)</span>';
         healButton.setAttribute('data-used', 'false');
-        
+    
         healButton.addEventListener('click', () => {
             if (healButton.getAttribute('data-used') === 'false') {
                 const currentHP = playerIndex === 1 ? player1HP : player2HP;
-                const healAmount = Math.floor(maxHP * 0.3 * (1 - currentHP / maxHP)); // Plus les PV sont bas, plus la guérison est efficace
-                
+                const healAmount = Math.floor(maxHP * 0.3 * (1 - currentHP / maxHP));
+    
                 if (playerIndex === 1) {
                     player1HP = Math.min(maxHP, player1HP + healAmount);
                 } else {
                     player2HP = Math.min(maxHP, player2HP + healAmount);
                 }
-                
+    
                 updateHPBars();
                 healButton.setAttribute('data-used', 'true');
                 healButton.disabled = true;
                 healButton.innerHTML = '✓ SOIN UTILISÉ';
                 healButton.classList.add('used');
-                
-                // Animation de soin
+    
                 const hpBar = playerIndex === 1 ? hpBar1 : hpBar2;
                 hpBar.classList.add('heal-animation');
                 setTimeout(() => {
                     hpBar.classList.remove('heal-animation');
                 }, 1000);
-                
-                // Message temporaire de confirmation
+    
                 const healMessage = document.createElement('div');
                 healMessage.className = 'heal-message';
                 healMessage.textContent = `Soin de ${healAmount} PV appliqué!`;
-                powerupContainer.insertBefore(healMessage, healButton);
-                
-                // Supprimer le message après 3 secondes
+    
+                powerupSlot.appendChild(healMessage);
+    
                 setTimeout(() => {
-                    if (powerupContainer.contains(healMessage)) {
-                        powerupContainer.removeChild(healMessage);
+                    if (powerupSlot.contains(healMessage)) {
+                        powerupSlot.removeChild(healMessage);
                     }
                 }, 3000);
             }
         });
-        
-        // Insérer le bouton juste en dessous des PV pour plus de visibilité
-        const hpContainer = document.querySelector(`#hero-info-${playerIndex} .hp-container`);
-        powerupContainer.insertBefore(healButton, hpContainer.nextSibling);
+    
+        powerupSlot.innerHTML = '';
+        powerupSlot.appendChild(healButton);
     }
+    
 
     // Fonction pour booster les stats d'un joueur
     function boostStats(playerIndex, weakerHero, strongerHero, diffPercentage) {
@@ -589,18 +595,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const powerupContainer = document.getElementById(`hero-info-${playerIndex}`);
         
         // Supprimer tout message existant pour éviter les doublons
-        const existingMessage = powerupContainer.querySelector('.boost-message');
-        if (existingMessage) {
-            powerupContainer.removeChild(existingMessage);
-        }
-        
-        const boostMessage = document.createElement('div');
-        boostMessage.className = 'boost-message';
-        boostMessage.innerHTML = '<strong>STATS BOOSTÉES</strong>';
-        
-        // Insérer le message au-dessus de la section des caractéristiques
-        const powerstatsTitle = powerupContainer.querySelector('h3:nth-of-type(3)');
-        powerupContainer.insertBefore(boostMessage, powerstatsTitle);
+        const boostSlot = document.getElementById(`boost-slot-${playerIndex}`);
+boostSlot.innerHTML = ''; // reset
+const boostMessage = document.createElement('div');
+boostMessage.className = 'boost-message';
+boostMessage.innerHTML = '<strong>STATS BOOSTÉES</strong>';
+boostSlot.appendChild(boostMessage);
+
         
         // Mettre à jour UNIQUEMENT l'affichage des statistiques sans recréer les sélecteurs
         displayHeroInBattle(weakerHero, playerIndex, true);
@@ -625,43 +626,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fonction pour mettre à jour l'affichage en fonction des rôles
     function updateRoleDisplay() {
-        const attackContainer1 = document.getElementById('attack-container-1');
-        const defenseContainer1 = document.getElementById('defense-container-1');
-        const attackContainer2 = document.getElementById('attack-container-2');
-        const defenseContainer2 = document.getElementById('defense-container-2');
-
-        const attackTitle1 = document.querySelector('#hero-info-1 h3:nth-of-type(1)');
-        const defenseTitle1 = document.querySelector('#hero-info-1 h3:nth-of-type(2)');
-        const attackTitle2 = document.querySelector('#hero-info-2 h3:nth-of-type(1)');
-        const defenseTitle2 = document.querySelector('#hero-info-2 h3:nth-of-type(2)');
-
-        // Mettre à jour les titres avec les rôles
+        // Titres des joueurs
         player1Display.textContent = `${player1Name} - ${player1Role}`;
         player2Display.textContent = `${player2Name} - ${player2Role}`;
-
-        // Afficher ou masquer les attaques et défenses en fonction des rôles
+    
+        // Blocs complets
+        const attackBlock1 = document.querySelector('#hero-info-1 .attack-block');
+        const defenseBlock1 = document.querySelector('#hero-info-1 .defense-block');
+        const attackBlock2 = document.querySelector('#hero-info-2 .attack-block');
+        const defenseBlock2 = document.querySelector('#hero-info-2 .defense-block');
+    
         if (player1Role === 'Attaquant') {
-            attackContainer1.style.display = 'block';
-            defenseContainer1.style.display = 'none';
-            attackTitle1.style.display = 'block';
-            defenseTitle1.style.display = 'none';
-
-            attackContainer2.style.display = 'none';
-            defenseContainer2.style.display = 'block';
-            attackTitle2.style.display = 'none';
-            defenseTitle2.style.display = 'block';
+            attackBlock1.style.display = 'block';
+            defenseBlock1.style.display = 'none';
+            attackBlock2.style.display = 'none';
+            defenseBlock2.style.display = 'block';
         } else {
-            attackContainer1.style.display = 'none';
-            defenseContainer1.style.display = 'block';
-            attackTitle1.style.display = 'none';
-            defenseTitle1.style.display = 'block';
-
-            attackContainer2.style.display = 'block';
-            defenseContainer2.style.display = 'none';
-            attackTitle2.style.display = 'block';
-            defenseTitle2.style.display = 'none';
+            attackBlock1.style.display = 'none';
+            defenseBlock1.style.display = 'block';
+            attackBlock2.style.display = 'block';
+            defenseBlock2.style.display = 'none';
         }
     }
+    
 
     // Étape 1: Clic sur le bouton Play
     playBtn.addEventListener('click', () => {
