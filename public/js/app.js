@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const avgStats = calculateAverageStats(hero);
         
         // Mise à jour du titre avec le nom du héros et sa moyenne de stats
-        heroName.innerHTML = `${hero.name} <span class="hero-avg-stats">Puissance totale: ${avgStats} pts</span>`;
+        heroName.innerHTML = `${hero.name} <br><span class="hero-avg-stats">Puissance totale: ${avgStats} pts</span>`;
         
         // Si on met à jour uniquement les stats, on ne refait pas toute l'affichage
         if (!updateStatsOnly) {
@@ -606,7 +606,7 @@ boostSlot.appendChild(boostMessage);
         // Recalculer et mettre à jour la moyenne des stats dans le titre (car elle a changé après le boost)
         const heroName = document.getElementById(`hero-name-${playerIndex}`);
         const avgStats = calculateAverageStats(weakerHero);
-        heroName.innerHTML = `${weakerHero.name} <span class="hero-avg-stats">Puissance totale: ${avgStats} pts</span>`;
+        heroName.innerHTML = `${weakerHero.name} <br><span class="hero-avg-stats">Puissance totale: ${avgStats} pts</span>`;
     }
     
     // Fonction pour attribuer les rôles aléatoirement

@@ -26,8 +26,7 @@
      align-items: center;
      min-height: 100vh;
      padding: 20px;
-    /* background: url('/img/background.jpg') no-repeat center center fixed;*/
-     background-color: white;
+     background: url('/img/SF_Arene.png') no-repeat center center fixed;
      background-size: cover;
      color: var(--color-light-text);
      overflow-x: hidden;
@@ -92,9 +91,10 @@
      box-shadow: 0 0 25px rgba(255, 255, 0, 0.9);
 }
  .btn-primary {
+    margin-top: 10px;
      background: linear-gradient(135deg, #ffc400, #ff9d00);
      border-color: var(--color-primary-yellow);
-     color: black;
+     color: white;
      box-shadow: var(--box-shadow-glow-yellow);
 }
  .btn-primary:hover {
@@ -483,7 +483,6 @@
  .attack-container, .defense-container {
      width: 100%;
      margin-top: 0;
-     max-width: 400px;
 }
  .side-left .attack-container, .side-left .defense-container {
      margin-right: auto;
@@ -755,7 +754,7 @@
 }
  .combat-message {
      position: fixed;
-     bottom: 25px;
+     top: 25px;
      left: 50%;
      transform: translateX(-50%);
      background-color: rgba(0, 0, 0, 0.9);
@@ -773,11 +772,11 @@
  @keyframes fadeInCombat {
      from {
          opacity: 0;
-         bottom: 5px;
+         top: 5px;
     }
      to {
          opacity: 1;
-         bottom: 25px;
+         top: 25px;
     }
 }
  @keyframes fadeInOut {
@@ -809,7 +808,6 @@
      background-color: rgba(52, 152, 219, 0.1);
      border-radius: 4px;
      padding: 3px 6px;
-     margin-left: 10px;
      vertical-align: middle;
      border: 1px solid rgba(52, 152, 219, 0.4);
      white-space: nowrap;
