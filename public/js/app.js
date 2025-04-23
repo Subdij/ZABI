@@ -1081,7 +1081,7 @@ boostSlot.appendChild(boostMessage);
         });
 
         // Attendre la fin de l'animation
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
         // Supprimer l'animation
         battleAnimation.remove();
@@ -1122,7 +1122,7 @@ boostSlot.appendChild(boostMessage);
         battleContainer.insertAdjacentElement('beforeend', combatMessage);
         
         // Attendre que le message soit lu
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise(resolve => setTimeout(resolve, 400));
         
         if (battleContainer.contains(combatMessage)) {
             battleContainer.removeChild(combatMessage);
