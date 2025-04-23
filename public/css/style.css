@@ -26,8 +26,7 @@
      align-items: center;
      min-height: 100vh;
      padding: 20px;
-    /* background: url('/img/background.jpg') no-repeat center center fixed;*/
-     background-color: white;
+     background: url('/img/SF_Arene.jpg') no-repeat center center fixed;
      background-size: cover;
      color: var(--color-light-text);
      overflow-x: hidden;
