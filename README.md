@@ -57,6 +57,10 @@ ZABI/
 │   ├── attaques.json         # Json avec la liste des attaques 
 │   └── defenses.json         # Json avec la liste des défenses
 │
+├── BDD/
+│   ├── SuperHerosComplet.json         # Json avec la liste des Héros 
+│   └── ZABI.InvalidID.json         # Json avec la liste des id invalides
+│
 ├── server.js                 # Serveur Node.js avec Express
 ├── package.json              # Dépendances & scripts
 └── README.md                 # Documentation du projet
