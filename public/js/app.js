@@ -43,6 +43,435 @@ document.addEventListener('DOMContentLoaded', () => {
     let degats_faiblesse=0;
     let degats_initiaux=0;
       
+    // Liste des événements bonus/malus possibles
+    const randomEvents = [
+        {
+            id: "colere-zeus",
+            name: "La Colère de Zeus",
+            description: "Zeus est furieux! Des éclairs frappent le terrain de combat!",
+            type: "malus",
+            rarity: "rare", // common, uncommon, rare, epic, legendary
+            trigger: () => Math.random() < 0.10, // 10% de chance de déclenchement
+            effect: (playerIndex) => {
+                // Détermine si on affecte un joueur ou les deux
+                const bothPlayers = Math.random() < 0.3; // 30% de chance d'affecter les deux
+                const damage = Math.floor(maxHP * 0.15); // 15% des PV max
+                
+                let message = "";
+                if (bothPlayers) {
+                    dealDamage(1, damage);
+                    dealDamage(2, damage);
+                    message = `Zeus frappe les deux combattants! -${damage} PV pour chacun`;
+                } else {
+                    dealDamage(playerIndex, damage);
+                    message = `Zeus frappe ${playerIndex === 1 ? player1Name : player2Name}! -${damage} PV`;
+                }
+                return {
+                    icon: "⚡",
+                    message: message,
+                    color: "#FFD700"
+                };
+            }
+        },
+        {
+            id: "benediction-heros",
+            name: "La Bénédiction du Héros",
+            description: "Une lumière divine régénère le combattant!",
+            type: "bonus",
+            rarity: "uncommon",
+            trigger: () => Math.random() < 0.15, // 15% de chance
+            effect: (playerIndex) => {
+                const healAmount = Math.floor(maxHP * 0.1);
+                
+                // Récupération de PV
+                if (playerIndex === 1) {
+                    player1HP = Math.min(maxHP, player1HP + healAmount);
+                } else {
+                    player2HP = Math.min(maxHP, player2HP + healAmount);
+                }
+                
+                updateHPBars();
+                
+                // Animation de soin
+                const hpBar = playerIndex === 1 ? hpBar1 : hpBar2;
+                hpBar.classList.add('heal-animation');
+                setTimeout(() => {
+                    hpBar.classList.remove('heal-animation');
+                }, 1000);
+                
+                return {
+                    icon: "✨",
+                    message: `${playerIndex === 1 ? player1Name : player2Name} reçoit une bénédiction! +${healAmount} PV`,
+                    color: "#7CFC00"
+                };
+            }
+        },
+        {
+            id: "fureur-combattant",
+            name: "Fureur du Combattant",
+            description: "Une rage incontrôlable renforce les attaques!",
+            type: "bonus",
+            rarity: "uncommon",
+            trigger: () => Math.random() < 0.15, // 15% de chance
+            effect: (playerIndex) => {
+                const hero = document.getElementById(`hero-info-${playerIndex}`);
+                const boostSlot = document.getElementById(`boost-slot-${playerIndex}`);
+                
+                // Ajout de la classe de boost d'attaque
+                hero.classList.add('attack-boosted');
+                
+                // Sauvegarder le boost pour le prochain tour
+                if (!window.activeBoosts) window.activeBoosts = {};
+                window.activeBoosts[`player${playerIndex}-attack`] = true;
+                
+                // Affichage du boost
+                const boostMessage = document.createElement('div');
+                boostMessage.className = 'boost-message';
+                boostMessage.innerHTML = '<strong>ATTAQUE +50%</strong>';
+                
+                // Nettoyer les anciens messages
+                boostSlot.innerHTML = '';
+                boostSlot.appendChild(boostMessage);
+                
+                // Ajouter un timeout pour nettoyer après 2 tours
+                setTimeout(() => {
+                    if (boostSlot.contains(boostMessage)) {
+                        boostSlot.removeChild(boostMessage);
+                    }
+                    delete window.activeBoosts[`player${playerIndex}-attack`];
+                    hero.classList.remove('attack-boosted');
+                }, 2 * 5000); // Supposant que chaque tour prend environ 5 secondes
+                
+                return {
+                    icon: "🔥",
+                    message: `${playerIndex === 1 ? player1Name : player2Name} entre en fureur! Attaque +50% pour 2 tours`,
+                    color: "#FF4500"
+                };
+            }
+        },
+        {
+            id: "bouclier-divin",
+            name: "Bouclier Divin",
+            description: "Une barrière protectrice renforce la défense!",
+            type: "bonus",
+            rarity: "uncommon",
+            trigger: () => Math.random() < 0.12, // 12% de chance
+            effect: (playerIndex) => {
+                const hero = document.getElementById(`hero-info-${playerIndex}`);
+                const boostSlot = document.getElementById(`boost-slot-${playerIndex}`);
+                
+                // Ajout de la classe de boost de défense
+                hero.classList.add('defense-boosted');
+                
+                // Sauvegarder le boost pour le prochain tour
+                if (!window.activeBoosts) window.activeBoosts = {};
+                window.activeBoosts[`player${playerIndex}-defense`] = true;
+                
+                // Affichage du boost
+                const boostMessage = document.createElement('div');
+                boostMessage.className = 'boost-message';
+                boostMessage.style.backgroundColor = "#4169E1";
+                boostMessage.innerHTML = '<strong>DÉFENSE +50%</strong>';
+                
+                // Nettoyer les anciens messages
+                boostSlot.innerHTML = '';
+                boostSlot.appendChild(boostMessage);
+                
+                // Ajouter un timeout pour nettoyer après 2 tours
+                setTimeout(() => {
+                    if (boostSlot.contains(boostMessage)) {
+                        boostSlot.removeChild(boostMessage);
+                    }
+                    delete window.activeBoosts[`player${playerIndex}-defense`];
+                    hero.classList.remove('defense-boosted');
+                }, 2 * 5000); // Supposant que chaque tour prend environ 5 secondes
+                
+                return {
+                    icon: "🛡️",
+                    message: `${playerIndex === 1 ? player1Name : player2Name} reçoit un bouclier divin! Défense +50% pour 2 tours`,
+                    color: "#4169E1"
+                };
+            }
+        },
+        {
+            id: "tremblement-terre",
+            name: "Tremblement de Terre",
+            description: "Le sol s'ouvre sous les pieds des combattants!",
+            type: "malus",
+            rarity: "rare",
+            trigger: () => Math.random() < 0.08, // 8% de chance
+            effect: (playerIndex) => {
+                // Affecte toujours les deux joueurs
+                const damage1 = Math.floor(maxHP * (0.05 + Math.random() * 0.05)); // 5-10% des PV max
+                const damage2 = Math.floor(maxHP * (0.05 + Math.random() * 0.05)); // 5-10% des PV max
+                
+                dealDamage(1, damage1);
+                dealDamage(2, damage2);
+                
+                // Secouer l'écran
+                document.body.classList.add('screen-shake');
+                setTimeout(() => {
+                    document.body.classList.remove('screen-shake');
+                }, 1000);
+                
+                return {
+                    icon: "🌋",
+                    message: `Un tremblement de terre secoue l'arène! ${player1Name} perd ${damage1} PV et ${player2Name} perd ${damage2} PV`,
+                    color: "#8B4513"
+                };
+            }
+        },
+        {
+            id: "pluie-cosmique",
+            name: "Pluie Cosmique",
+            description: "Une étrange pluie d'énergie tombe du ciel!",
+            type: "mixed",
+            rarity: "epic",
+            trigger: () => Math.random() < 0.05, // 5% de chance
+            effect: (playerIndex) => {
+                // Effet aléatoire pour chaque joueur
+                const effectP1 = Math.random() < 0.5; // true = bonus, false = malus
+                const effectP2 = Math.random() < 0.5; // true = bonus, false = malus
+                
+                const valueP1 = Math.floor(maxHP * 0.12); // 12% des PV max
+                const valueP2 = Math.floor(maxHP * 0.12); // 12% des PV max
+                
+                let message = "Une pluie cosmique mystérieuse tombe sur l'arène!<br>";
+                
+                if (effectP1) {
+                    player1HP = Math.min(maxHP, player1HP + valueP1);
+                    message += `${player1Name} se sent revitalisé! +${valueP1} PV<br>`;
+                    
+                    // Animation de soin
+                    hpBar1.classList.add('heal-animation');
+                    setTimeout(() => {
+                        hpBar1.classList.remove('heal-animation');
+                    }, 1000);
+                } else {
+                    dealDamage(1, valueP1);
+                    message += `${player1Name} est bombardé d'énergie négative! -${valueP1} PV<br>`;
+                }
+                
+                if (effectP2) {
+                    player2HP = Math.min(maxHP, player2HP + valueP2);
+                    message += `${player2Name} se sent revitalisé! +${valueP2} PV`;
+                    
+                    // Animation de soin
+                    hpBar2.classList.add('heal-animation');
+                    setTimeout(() => {
+                        hpBar2.classList.remove('heal-animation');
+                    }, 1000);
+                } else {
+                    dealDamage(2, valueP2);
+                    message += `${player2Name} est bombardé d'énergie négative! -${valueP2} PV`;
+                }
+                
+                updateHPBars();
+                
+                return {
+                    icon: "☄️",
+                    message: message,
+                    color: "#9370DB"
+                };
+            }
+        }
+    ];
+
+    // Fonction pour tenter de déclencher un événement aléatoire
+    function tryTriggerRandomEvent(currentTurn) {
+        // Pas d'événement avant le 2e tour pour laisser les joueurs s'installer
+        if (currentTurn < 2) return null;
+        
+        // Chance de base de 25% d'avoir un événement
+        if (Math.random() > 0.25) return null;
+        
+        // Filtrer les événements qui peuvent se déclencher selon leur propre probabilité
+        const possibleEvents = randomEvents.filter(event => event.trigger());
+        
+        if (possibleEvents.length === 0) return null;
+        
+        // Choisir un événement aléatoire parmi ceux qui peuvent se déclencher
+        const selectedEvent = possibleEvents[Math.floor(Math.random() * possibleEvents.length)];
+        
+        // Déterminer quel joueur est affecté (ou les deux dans certains cas)
+        const targetPlayer = Math.random() < 0.5 ? 1 : 2;
+        
+        // Déclencher l'effet et récupérer le message
+        const eventResult = selectedEvent.effect(targetPlayer);
+        
+        // Vérifier que le résultat est au format attendu
+        if (!eventResult || !eventResult.message) {
+            console.error("L'événement n'a pas généré de résultat valide:", selectedEvent.id);
+            return null;
+        }
+        
+        return {
+            event: selectedEvent,
+            result: eventResult
+        };
+    }
+
+    // Ajouter du CSS pour l'animation de tremblement
+    const shakeCSS = document.createElement('style');
+    shakeCSS.textContent = `
+        @keyframes screen-shake {
+            0% { transform: translate(0, 0); }
+            10% { transform: translate(-5px, -5px); }
+            20% { transform: translate(5px, 5px); }
+            30% { transform: translate(-5px, 5px); }
+            40% { transform: translate(5px, -5px); }
+            50% { transform: translate(-5px, -5px); }
+            60% { transform: translate(5px, 5px); }
+            70% { transform: translate(-5px, 5px); }
+            80% { transform: translate(5px, -5px); }
+            90% { transform: translate(-5px, -5px); }
+            100% { transform: translate(0, 0); }
+        }
+        
+        .screen-shake {
+            animation: screen-shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        
+        .attack-boosted {
+            outline: 2px solid #ff4500;
+            box-shadow: 0 0 15px #ff4500;
+        }
+        
+        .defense-boosted {
+            outline: 2px solid #4169e1;
+            box-shadow: 0 0 15px #4169e1;
+        }
+    `;
+    document.head.appendChild(shakeCSS);
+
+    // Mettre à jour le CSS d'animation
+    const eventCSS = document.createElement('style');
+    eventCSS.textContent = `
+        .random-event {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid;
+            border-radius: 10px;
+            padding: 25px 40px;
+            z-index: 1000;
+            text-align: center;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            min-width: 350px;
+            max-width: 90%;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+            font-family: var(--font-pixel);
+        }
+
+        .random-event.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        .random-event.bonus {
+            border-color: #4caf50;
+            box-shadow: 0 0 30px rgba(76, 175, 80, 0.5);
+        }
+
+        .random-event.malus {
+            border-color: #f44336;
+            box-shadow: 0 0 30px rgba(244, 67, 54, 0.5);
+        }
+        
+        .random-event-header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .random-event-icon {
+            font-size: 32px;
+        }
+        
+        .random-event-message {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+    `;
+
+    document.head.appendChild(eventCSS);
+
+    // Fonction pour afficher un événement aléatoire
+    function displayRandomEvent(eventResult) {
+        if (!eventResult) return;
+        
+        const { event, result } = eventResult;
+        
+        // Vérification plus stricte des propriétés requises
+        if (!event || !result || typeof result !== 'object') {
+            console.error("Données d'événement incomplètes:", eventResult);
+            return;
+        }
+        
+        // Définir des valeurs par défaut explicites pour chaque propriété
+        const eventName = (event && event.name) ? event.name : "Événement mystérieux";
+        const eventIcon = (result && result.icon) ? result.icon : "⚠️";
+        const eventMessage = (result && result.message) ? result.message : "Un événement mystérieux s'est produit...";
+        const eventColor = (result && result.color) ? result.color : "#FFCC00";
+        const eventType = (event && event.type) ? event.type : "mixed";
+        
+        // Créer l'élément d'événement avec un HTML complet et valide
+        const eventElement = document.createElement('div');
+        eventElement.className = `random-event ${eventType}`;
+        eventElement.style.borderColor = eventColor;
+        eventElement.style.boxShadow = `0 0 30px ${eventColor}`;
+        
+        // Contenu de l'événement avec un formatage explicite
+        eventElement.innerHTML = `
+            <div class="random-event-header" style="color: ${eventColor}">
+                <span class="random-event-icon">${eventIcon}</span>
+                <span class="event-title">${eventName}</span>
+            </div>
+            <div class="random-event-message">${eventMessage}</div>
+        `;
+        
+        // Ajouter à la page
+        document.body.appendChild(eventElement);
+        
+        // Forcer un repaint avant d'ajouter la classe show
+        void eventElement.offsetWidth;
+        
+        // Activer immédiatement la transition
+        eventElement.classList.add('show');
+        
+        // Supprimer après l'animation
+        setTimeout(() => {
+            eventElement.classList.remove('show');
+            
+            // Attendre que la transition de sortie soit terminée avant de supprimer
+            setTimeout(() => {
+                if (document.body.contains(eventElement)) {
+                    document.body.removeChild(eventElement);
+                }
+            }, 500);
+            
+        }, 4000); // Durée d'affichage légèrement plus longue
+        
+        // Ajouter à l'historique avec un format clair
+        const historyMessage = `
+            <div class="history-special-event">
+                <span class="history-event-title">
+                    <span class="history-event-icon">${eventIcon}</span>
+                    ÉVÉNEMENT SPÉCIAL: ${eventName}
+                </span>
+                ${eventMessage}
+            </div>
+        `;
+        addToHistory(historyMessage);
+    }
+
     // Création de l'élément pour le compteur de tour
     const turnCounterDisplay = document.createElement('div');
     turnCounterDisplay.id = 'turn-counter';
@@ -675,10 +1104,14 @@ boostSlot.appendChild(boostMessage);
 
         battleContainer.style.display = 'flex';
 
-        const [hero1, hero2] = await Promise.all([
+        const [fetchedHero1, fetchedHero2] = await Promise.all([
             fetchHeroWithRetry(),
             fetchHeroWithRetry()
         ]);
+        
+        // Stocker les références globales aux héros
+        hero1 = fetchedHero1;
+        hero2 = fetchedHero2;
 
         displayHeroInBattle(hero1, 1);
         displayHeroInBattle(hero2, 2);
@@ -802,18 +1235,34 @@ boostSlot.appendChild(boostMessage);
         const valeurAttaque = getStatValue(heroAttaquant, attaqueChoisie.pouvoir) * attaqueChoisie.modificateur;
         const valeurDefense = getStatValue(heroDefenseur, defenseChoisie.pouvoir) * defenseChoisie.modificateur;
         degats_faiblesse=0;
+        // Appliquer les bonus actifs aux calculs de dégâts
+        const applyActiveBoosts = (playerIndex, value, type) => {
+            if (!window.activeBoosts) return value;
+            
+            if (type === 'attack' && window.activeBoosts[`player${playerIndex}-attack`]) {
+                return Math.floor(value * 1.5); // +50% d'attaque
+            } else if (type === 'defense' && window.activeBoosts[`player${playerIndex}-defense`]) {
+                return Math.floor(value * 1.5); // +50% de défense
+            }
+            
+            return value;
+        };
+
+        const valeurAttaqueBoostee = applyActiveBoosts(attaquant, valeurAttaque, 'attack');
+        const valeurDefenseBoostee = applyActiveBoosts(defenseur, valeurDefense, 'defense');
+
         // Calculer les dégâts finaux
-        let degats = Math.max(0, Math.floor(valeurAttaque - valeurDefense));
+        let degats = Math.max(0, Math.floor(valeurAttaqueBoostee - valeurDefenseBoostee));
         degats_initiaux=degats;
-        // Appliquer les dégâts
+        // Calculer les dégâts finaux avec faiblesse
         degats = calculerDegats(degats, attaqueChoisie.pouvoir, defenseChoisie.pouvoir);
         dealDamage(defenseur, degats);
         
         // Ajouter le message au tableau d'historique
         const message = `
-            <strong>${attaquant === 1 ? player1Name : player2Name}</strong> utilise ${attaqueChoisie.name} (${Math.floor(valeurAttaque)} pts)
+            <strong>${attaquant === 1 ? player1Name : player2Name}</strong> utilise ${attaqueChoisie.name} (${Math.floor(valeurAttaqueBoostee)} pts)
             <br>
-            <strong>${defenseur === 1 ? player1Name : player2Name}</strong> se défend avec ${defenseChoisie.name} (${Math.floor(valeurDefense)} pts)
+            <strong>${defenseur === 1 ? player1Name : player2Name}</strong> se défend avec ${defenseChoisie.name} (${Math.floor(valeurDefenseBoostee)} pts)
             ${degats_faiblesse !== 0 ? `
                 <br> Dégâts initiaux : ${degats_initiaux} <br>
                 Dégâts de faiblesse : ${degats_faiblesse > 0 ? '+' : ''}${degats_faiblesse}` : ''}
@@ -826,9 +1275,9 @@ boostSlot.appendChild(boostMessage);
         const combatMessage = document.createElement('div');
         combatMessage.className = 'combat-message';
         combatMessage.innerHTML = `
-            <strong>${attaquant === 1 ? player1Name : player2Name}</strong> utilise ${attaqueChoisie.name} (${Math.floor(valeurAttaque)} pts)
+            <strong>${attaquant === 1 ? player1Name : player2Name}</strong> utilise ${attaqueChoisie.name} (${Math.floor(valeurAttaqueBoostee)} pts)
             <br>
-            <strong>${defenseur === 1 ? player1Name : player2Name}</strong> se défend avec ${defenseChoisie.name} (${Math.floor(valeurDefense)} pts)
+            <strong>${defenseur === 1 ? player1Name : player2Name}</strong> se défend avec ${defenseChoisie.name} (${Math.floor(valeurDefenseBoostee)} pts)
             
             
             ${degats_faiblesse !== 0 ? `
@@ -847,6 +1296,15 @@ boostSlot.appendChild(boostMessage);
             }
         }, 3000);
 
+        // Tenter de déclencher un événement aléatoire
+        const randomEvent = tryTriggerRandomEvent(turnCounter);
+        if (randomEvent) {
+            // Attendre un moment pour que le message de combat soit visible avant
+            setTimeout(() => {
+                displayRandomEvent(randomEvent);
+            }, 1000);
+        }
+
         // Inverser les rôles
         [player1Role, player2Role] = [player2Role, player1Role];
         updateRoleDisplay();
@@ -854,6 +1312,9 @@ boostSlot.appendChild(boostMessage);
         // Incrémenter le compteur de tour
         turnCounter++;
         turnCounterDisplay.textContent = `Tour : ${turnCounter}`;
+        
+        // Vérifier les effets temporaires à la fin de chaque tour
+        checkTemporaryEffects();
     });
 
     async function preloadNextHeroes(count = 3) {
@@ -869,5 +1330,502 @@ boostSlot.appendChild(boostMessage);
         }
     }
 
+    // Variables pour stocker les références aux héros
+    let hero1 = null;
+    let hero2 = null;
 
+    // Variables pour les effets temporaires
+    let activeEffects = {
+        player1: [],
+        player2: []
+    };
+
+    // Système d'événements aléatoires
+    function setupRandomEvents() {
+        return [
+            // Malus
+            {
+                id: "colere-zeus",
+                name: "La Colère de Zeus",
+                type: "malus",
+                description: "Zeus lance sa foudre sur le champ de bataille!",
+                probability: 0.10, // 10% de chance
+                execute: () => {
+                    document.body.classList.add('lightning-effect');
+                    setTimeout(() => document.body.classList.remove('lightning-effect'), 1000);
+                    
+                    // Choisir une cible aléatoire (1, 2 ou les deux)
+                    const target = Math.floor(Math.random() * 3);
+                    const damage = Math.floor(maxHP * 0.15); // 15% des PV max
+                    
+                    if (target === 0 || target === 2) { // Joueur 1 ou les deux
+                        player1HP = Math.max(0, player1HP - damage);
+                        displayEventEffect(1, `a perdu ${damage} PV à cause de la foudre!`);
+                    }
+                    
+                    if (target === 1 || target === 2) { // Joueur 2 ou les deux
+                        player2HP = Math.max(0, player2HP - damage);
+                        displayEventEffect(2, `a perdu ${damage} PV à cause de la foudre!`);
+                    }
+                    
+                    updateHPBars();
+                    return `La foudre de Zeus frappe le champ de bataille!`;
+                }
+            },
+            {
+                id: "tremblement-terre",
+                name: "Tremblement de Terre",
+                type: "malus",
+                description: "Le sol tremble, déséquilibrant les combattants!",
+                probability: 0.08,
+                execute: () => {
+                    battleContainer.classList.add('earthquake-effect');
+                    setTimeout(() => battleContainer.classList.remove('earthquake-effect'), 800);
+                    
+                    // Les deux joueurs perdent une partie de leurs PV
+                    const damage = Math.floor(maxHP * 0.1); // 10% des PV max
+                    player1HP = Math.max(0, player1HP - damage);
+                    player2HP = Math.max(0, player2HP - damage);
+                    
+                    displayEventEffect(1, `a perdu ${damage} PV à cause du séisme!`);
+                    displayEventEffect(2, `a perdu ${damage} PV à cause du séisme!`);
+                    
+                    updateHPBars();
+                    return `Un violent tremblement de terre secoue les combattants!`;
+                }
+            },
+            {
+                id: "fatigue-extreme",
+                name: "Fatigue Extrême",
+                type: "malus",
+                description: "Un des combattants s'épuise soudainement!",
+                probability: 0.07,
+                execute: () => {
+                    // Choisir une cible aléatoire
+                    const target = Math.floor(Math.random() * 2);
+                    
+                    if (target === 0) {
+                        // Appliquer un effet de débuff temporaire au joueur 1
+                        applyTemporaryStatEffect(1, "tous", 0.7, 2);
+                        displayEventEffect(1, `subit une fatigue extrême! Toutes ses statistiques sont réduites.`);
+                        return `${player1Name} s'effondre de fatigue, affaiblissant temporairement ses capacités!`;
+                    } else {
+                        // Appliquer un effet de débuff temporaire au joueur 2
+                        applyTemporaryStatEffect(2, "tous", 0.7, 2);
+                        displayEventEffect(2, `subit une fatigue extrême! Toutes ses statistiques sont réduites.`);
+                        return `${player2Name} s'effondre de fatigue, affaiblissant temporairement ses capacités!`;
+                    }
+                }
+            },
+            
+            // Bonus
+            {
+                id: "benediction-apollon",
+                name: "Bénédiction d'Apollon",
+                type: "bonus",
+                description: "Apollon guérit les blessures d'un combattant!",
+                probability: 0.09,
+                execute: () => {
+                    // Choisir une cible aléatoire
+                    const target = Math.floor(Math.random() * 2);
+                    const healAmount = Math.floor(maxHP * 0.2); // 20% des PV max
+                    
+                    if (target === 0) {
+                        player1HP = Math.min(maxHP, player1HP + healAmount);
+                        displayEventEffect(1, `récupère ${healAmount} PV grâce à Apollon!`, true);
+                        
+                        const hpBar = document.getElementById('hp-bar-1');
+                        hpBar.classList.add('heal-animation');
+                        setTimeout(() => hpBar.classList.remove('heal-animation'), 1000);
+                        
+                        updateHPBars();
+                        return `${player1Name} reçoit la bénédiction guérisseuse d'Apollon!`;
+                    } else {
+                        player2HP = Math.min(maxHP, player2HP + healAmount);
+                        displayEventEffect(2, `récupère ${healAmount} PV grâce à Apollon!`, true);
+                        
+                        const hpBar = document.getElementById('hp-bar-2');
+                        hpBar.classList.add('heal-animation');
+                        setTimeout(() => hpBar.classList.remove('heal-animation'), 1000);
+                        
+                        updateHPBars();
+                        return `${player2Name} reçoit la bénédiction guérisseuse d'Apollon!`;
+                    }
+                }
+            },
+            {
+                id: "force-hercule",
+                name: "La Force d'Hercule",
+                type: "bonus",
+                description: "Un des combattants est envahi par la force d'Hercule!",
+                probability: 0.09,
+                execute: () => {
+                    // Choisir une cible aléatoire
+                    const target = Math.floor(Math.random() * 2);
+                    
+                    if (target === 0) {
+                        // Appliquer un effet de buff temporaire au joueur 1
+                        applyTemporaryStatEffect(1, "strength", 1.7, 2);
+                        displayEventEffect(1, `sent la puissance d'Hercule couler dans ses veines!`, true);
+                        return `${player1Name} reçoit la force légendaire d'Hercule!`;
+                    } else {
+                        // Appliquer un effet de buff temporaire au joueur 2
+                        applyTemporaryStatEffect(2, "strength", 1.7, 2);
+                        displayEventEffect(2, `sent la puissance d'Hercule couler dans ses veines!`, true);
+                        return `${player2Name} reçoit la force légendaire d'Hercule!`;
+                    }
+                }
+            },
+            {
+                id: "sagesse-athena",
+                name: "La Sagesse d'Athéna",
+                type: "bonus",
+                description: "Athéna partage sa sagesse avec un combattant!",
+                probability: 0.07,
+                execute: () => {
+                    // Choisir une cible aléatoire
+                    const target = Math.floor(Math.random() * 2);
+                    
+                    if (target === 0) {
+                        // Appliquer un effet de buff temporaire au joueur 1
+                        applyTemporaryStatEffect(1, "intelligence", 1.6, 2);
+                        displayEventEffect(1, `reçoit la sagesse d'Athéna!`, true);
+                        return `${player1Name} est illuminé par la sagesse d'Athéna!`;
+                    } else {
+                        // Appliquer un effet de buff temporaire au joueur 2
+                        applyTemporaryStatEffect(2, "intelligence", 1.6, 2);
+                        displayEventEffect(2, `reçoit la sagesse d'Athéna!`, true);
+                        return `${player2Name} est illuminé par la sagesse d'Athéna!`;
+                    }
+                }
+            },
+            {
+                id: "pluie-meteores",
+                name: "Pluie de Météores",
+                type: "malus",
+                description: "Des météores s'abattent sur le champ de bataille!",
+                probability: 0.06,
+                execute: () => {
+                    // Impact aléatoire sur les deux joueurs
+                    const damage1 = Math.floor(maxHP * (0.05 + Math.random() * 0.15)); // 5-20%
+                    const damage2 = Math.floor(maxHP * (0.05 + Math.random() * 0.15)); // 5-20%
+                    
+                    player1HP = Math.max(0, player1HP - damage1);
+                    player2HP = Math.max(0, player2HP - damage2);
+                    
+                    displayEventEffect(1, `a perdu ${damage1} PV à cause des météores!`);
+                    displayEventEffect(2, `a perdu ${damage2} PV à cause des météores!`);
+                    
+                    updateHPBars();
+                    return `Une pluie de météores s'abat sur le champ de bataille!`;
+                }
+            },
+            {
+                id: "armure-hades",
+                name: "L'Armure d'Hadès",
+                type: "bonus",
+                description: "Hadès offre son armure des enfers à un combattant!",
+                probability: 0.07,
+                execute: () => {
+                    // Choisir une cible aléatoire
+                    const target = Math.floor(Math.random() * 2);
+                    
+                    if (target === 0) {
+                        // Appliquer un effet de buff temporaire au joueur 1
+                        applyTemporaryStatEffect(1, "durability", 1.8, 2);
+                        displayEventEffect(1, `est protégé par l'armure des enfers!`, true);
+                        return `${player1Name} est enveloppé par l'armure sombre d'Hadès!`;
+                    } else {
+                        // Appliquer un effet de buff temporaire au joueur 2
+                        applyTemporaryStatEffect(2, "durability", 1.8, 2);
+                        displayEventEffect(2, `est protégé par l'armure des enfers!`, true);
+                        return `${player2Name} est enveloppé par l'armure sombre d'Hadès!`;
+                    }
+                }
+            },
+            {
+                id: "brouillard-mystique",
+                name: "Brouillard Mystique",
+                type: "malus",
+                description: "Un épais brouillard enveloppe le champ de bataille!",
+                probability: 0.06,
+                execute: () => {
+                    // Réduire l'efficacité des attaques pour les deux joueurs
+                    applyTemporaryStatEffect(1, "intelligence", 0.75, 1);
+                    applyTemporaryStatEffect(2, "intelligence", 0.75, 1);
+                    
+                    displayEventEffect(1, `a du mal à voir son adversaire!`);
+                    displayEventEffect(2, `a du mal à voir son adversaire!`);
+                    
+                    return `Un brouillard mystique enveloppe l'arène, réduisant la visibilité!`;
+                }
+            },
+            {
+                id: "energie-cosmique",
+                name: "Énergie Cosmique",
+                type: "bonus",
+                description: "Une vague d'énergie cosmique traverse le champ de bataille!",
+                probability: 0.07,
+                execute: () => {
+                    // Augmenter le Power des deux joueurs
+                    applyTemporaryStatEffect(1, "power", 1.4, 2);
+                    applyTemporaryStatEffect(2, "power", 1.4, 2);
+                    
+                    displayEventEffect(1, `ressent une montée d'énergie cosmique!`, true);
+                    displayEventEffect(2, `ressent une montée d'énergie cosmique!`, true);
+                    
+                    return `Une vague d'énergie cosmique traverse le champ de bataille, renforçant les pouvoirs!`;
+                }
+            },
+            {
+                id: "intervention-divine",
+                name: "Intervention Divine",
+                type: "bonus",
+                description: "Les dieux interviennent directement!",
+                probability: 0.04,
+                execute: () => {
+                    // Choisir le joueur avec le moins de PV
+                    let target, healAmount;
+                    
+                    if (player1HP < player2HP) {
+                        target = 1;
+                        healAmount = Math.floor(maxHP * 0.35);
+                        player1HP = Math.min(maxHP, player1HP + healAmount);
+                    } else {
+                        target = 2;
+                        healAmount = Math.floor(maxHP * 0.35);
+                        player2HP = Math.min(maxHP, player2HP + healAmount);
+                    }
+                    
+                    const targetName = target === 1 ? player1Name : player2Name;
+                    displayEventEffect(target, `a été choisi par les dieux! Récupère ${healAmount} PV!`, true);
+                    
+                    updateHPBars();
+                    return `Les dieux interviennent en faveur de ${targetName}, lui redonnant de la vitalité!`;
+                }
+            },
+            {
+                id: "anomalie-temporelle",
+                name: "Anomalie Temporelle",
+                type: "malus",
+                description: "Le temps se distord autour d'un combattant!",
+                probability: 0.05,
+                execute: () => {
+                    // Choisir une cible aléatoire
+                    const target = Math.floor(Math.random() * 2);
+                    
+                    if (target === 0) {
+                        // Réduire la vitesse du joueur 1
+                        applyTemporaryStatEffect(1, "speed", 0.6, 2);
+                        displayEventEffect(1, `est ralenti par une distorsion temporelle!`);
+                        return `${player1Name} est pris dans une bulle temporelle qui ralentit ses mouvements!`;
+                    } else {
+                        // Réduire la vitesse du joueur 2
+                        applyTemporaryStatEffect(2, "speed", 0.6, 2);
+                        displayEventEffect(2, `est ralenti par une distorsion temporelle!`);
+                        return `${player2Name} est pris dans une bulle temporelle qui ralentit ses mouvements!`;
+                    }
+                }
+            },
+            {
+                id: "rage-berserker",
+                name: "Rage de Berserker",
+                type: "bonus",
+                description: "Une fureur incontrôlable s'empare d'un combattant!",
+                probability: 0.06,
+                execute: () => {
+                    // Choisir une cible aléatoire
+                    const target = Math.floor(Math.random() * 2);
+                    
+                    if (target === 0) {
+                        // Augmenter l'attaque mais réduire la défense du joueur 1
+                        applyTemporaryStatEffect(1, "strength", 1.8, 2);
+                        applyTemporaryStatEffect(1, "durability", 0.7, 2);
+                        displayEventEffect(1, `entre en rage! +Force, -Résistance`, true);
+                        return `${player1Name} entre dans une rage berserker!`;
+                    } else {
+                        // Augmenter l'attaque mais réduire la défense du joueur 2
+                        applyTemporaryStatEffect(2, "strength", 1.8, 2);
+                        applyTemporaryStatEffect(2, "durability", 0.7, 2);
+                        displayEventEffect(2, `entre en rage! +Force, -Résistance`, true);
+                        return `${player2Name} entre dans une rage berserker!`;
+                    }
+                }
+            }
+        ];
+    }
+
+    // Fonction pour vérifier si un événement se déclenche
+    function checkForRandomEvent() {
+        // Probabilité de base de 20% qu'un événement se produise
+        if (Math.random() > 0.20) return false;
+        
+        const events = setupRandomEvents();
+        
+        // Sélectionner un événement au hasard en tenant compte de leur probabilité relative
+        const totalProbability = events.reduce((sum, event) => sum + event.probability, 0);
+        let randomValue = Math.random() * totalProbability;
+        let cumulativeProbability = 0;
+        
+        for (const event of events) {
+            cumulativeProbability += event.probability;
+            if (randomValue <= cumulativeProbability) {
+                // Événement déclenché!
+                const message = event.execute();
+                displaySpecialEvent(event, message); // Utiliser le nouveau nom de fonction
+                addToHistory(`<strong>Événement spécial:</strong> ${event.name}<br>${message}`);
+                return true;
+            }
+        }
+        
+        return false; // Aucun événement déclenché
+    }
+
+    // Fonction pour afficher l'événement aléatoire à l'écran
+    function displaySpecialEvent(event, message) {
+        const eventContainer = document.createElement('div');
+        eventContainer.className = `random-event ${event.type}`;
+        
+        eventContainer.innerHTML = `
+            <h3>${event.name}</h3>
+            <p>${message || "Un événement mystérieux s'est produit"}</p>
+        `;
+        
+        document.body.appendChild(eventContainer);
+        
+        // Effet d'animation
+        setTimeout(() => {
+            eventContainer.classList.add('show');
+        }, 10);
+        
+        // Supprimer après un délai
+        setTimeout(() => {
+            eventContainer.classList.remove('show');
+            setTimeout(() => {
+                if (document.body.contains(eventContainer)) {
+                    document.body.removeChild(eventContainer);
+                }
+            }, 1000);
+        }, 5000);
+    }
+
+    // Fonction pour afficher l'effet d'un événement sur un joueur spécifique
+    function displayEventEffect(playerIndex, message, isPositive = false) {
+        const container = document.getElementById(`hero-info-${playerIndex}`);
+        const effectMsg = document.createElement('div');
+        effectMsg.className = `event-effect ${isPositive ? 'positive' : 'negative'}`;
+        effectMsg.innerHTML = `
+            <strong>${playerIndex === 1 ? player1Name : player2Name}</strong> ${message}
+        `;
+        
+        container.appendChild(effectMsg);
+        
+        setTimeout(() => {
+            effectMsg.classList.add('show');
+        }, 10);
+        
+        setTimeout(() => {
+            effectMsg.classList.remove('show');
+            setTimeout(() => {
+                if (container.contains(effectMsg)) {
+                    container.removeChild(effectMsg);
+                }
+            }, 1000);
+        }, 3500);
+    }
+
+    // Fonction pour appliquer un effet temporaire sur les stats d'un joueur
+    function applyTemporaryStatEffect(playerIndex, statType, multiplier, durationInTurns) {
+        // Récupérer le héros correspondant
+        const hero = playerIndex === 1 ? hero1 : hero2;
+        
+        // S'assurer que les stats originales sont sauvegardées
+        if (!hero.originalStats && hero.powerstats) {
+            hero.originalStats = JSON.parse(JSON.stringify(hero.powerstats));
+        }
+        
+        // Stocker l'effet actif
+        const effect = {
+            stat: statType,
+            multiplier: multiplier,
+            duration: durationInTurns,
+            endTurn: turnCounter + durationInTurns
+        };
+        
+        activeEffects[`player${playerIndex}`].push(effect);
+        
+        // Appliquer le multiplicateur à la statistique
+        if (statType === "tous") {
+            // Appliquer à toutes les stats
+            Object.keys(hero.powerstats).forEach(stat => {
+                const originalValue = parseInt(hero.originalStats[stat]);
+                hero.powerstats[stat] = Math.round(originalValue * multiplier);
+            });
+        } else {
+            // Appliquer à une statistique spécifique
+            const originalValue = parseInt(hero.originalStats[statType]);
+            hero.powerstats[statType] = Math.round(originalValue * multiplier);
+        }
+        
+        // Mettre à jour l'affichage
+        displayHeroInBattle(hero, playerIndex, true);
+    }
+
+    // Fonction pour vérifier et supprimer les effets temporaires expirés
+    function checkTemporaryEffects() {
+        const checkPlayer = (playerIndex) => {
+            const hero = playerIndex === 1 ? hero1 : hero2;
+            if (!hero) return;
+            
+            const playerEffects = activeEffects[`player${playerIndex}`];
+            if (playerEffects.length === 0) return;
+            
+            let effectsRemoved = false;
+            
+            // Filtrer les effets qui ne sont pas encore expirés
+            activeEffects[`player${playerIndex}`] = playerEffects.filter(effect => {
+                if (effect.endTurn <= turnCounter) {
+                    // L'effet est expiré
+                    effectsRemoved = true;
+                    return false;
+                }
+                return true;
+            });
+            
+            // Si des effets ont été retirés, restaurer les stats originales
+            if (effectsRemoved) {
+                // Restaurer d'abord toutes les stats originales
+                if (hero.originalStats) {
+                    Object.keys(hero.originalStats).forEach(stat => {
+                        hero.powerstats[stat] = hero.originalStats[stat];
+                    });
+                }
+                
+                // Puis réappliquer tous les effets actifs restants
+                playerEffects.forEach(effect => {
+                    if (effect.stat === "tous") {
+                        Object.keys(hero.powerstats).forEach(stat => {
+                            const originalValue = parseInt(hero.originalStats[stat]);
+                            hero.powerstats[stat] = Math.round(originalValue * effect.multiplier);
+                        });
+                    } else {
+                        const originalValue = parseInt(hero.originalStats[effect.stat]);
+                        hero.powerstats[effect.stat] = Math.round(originalValue * effect.multiplier);
+                    }
+                });
+                
+                // Mettre à jour l'affichage
+                displayHeroInBattle(hero, playerIndex, true);
+                
+                // Afficher un message si tous les effets sont terminés
+                if (activeEffects[`player${playerIndex}`].length === 0) {
+                    displayEventEffect(playerIndex, `retrouve son état normal.`, true);
+                }
+            }
+        };
+        
+        // Vérifier les deux joueurs
+        checkPlayer(1);
+        checkPlayer(2);
+    }
 });

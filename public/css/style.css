@@ -993,3 +993,163 @@
     border-top: 1px solid #ffffff;
     margin: 10px 0;
 }
+
+/* Styles pour les événements spéciaux dans l'historique */
+.history-special-event {
+    background-color: rgba(50, 50, 50, 0.8); 
+    padding: 8px 12px;
+    border-left: 4px solid #FFD700;
+    margin: 5px 0;
+    border-radius: 4px;
+}
+
+.history-event-icon {
+    font-size: 18px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.history-event-title {
+    color: #FFD700;
+    font-weight: bold;
+    margin-bottom: 4px;
+    display: block;
+}
+
+/* Styles pour les événements aléatoires */
+.random-event {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  background: rgba(0, 0, 0, 0.9);
+  border: 3px solid;
+  border-radius: 10px;
+  padding: 25px 40px;
+  z-index: 1000;
+  text-align: center;
+  opacity: 0;
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  min-width: 350px;
+  max-width: 90%;
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+  font-family: var(--font-pixel);
+}
+
+.random-event.show {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+}
+
+.random-event.bonus {
+  border-color: #4caf50;
+  box-shadow: 0 0 30px rgba(76, 175, 80, 0.5);
+}
+
+.random-event.malus {
+  border-color: #f44336;
+  box-shadow: 0 0 30px rgba(244, 67, 54, 0.5);
+}
+
+.random-event h3 {
+  font-size: 1.5em;
+  margin-bottom: 15px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.random-event.bonus h3 {
+  color: #4caf50;
+}
+
+.random-event.malus h3 {
+  color: #f44336;
+}
+
+.random-event p {
+  font-size: 1em;
+  line-height: 1.5;
+  color: #ffffff;
+}
+
+.event-effect {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 5px;
+  padding: 10px 15px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  opacity: 0;
+  z-index: 50;
+  transition: all 0.4s ease;
+  width: max-content;
+  max-width: 90%;
+}
+
+.event-effect.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.event-effect.positive {
+  border-left: 4px solid #4caf50;
+}
+
+.event-effect.negative {
+  border-left: 4px solid #f44336;
+}
+
+/* Animation spéciales pour les événements */
+@keyframes lightning-flash {
+  0%, 100% { box-shadow: none; }
+  25%, 75% { box-shadow: 0 0 100px 10px rgba(255, 255, 255, 0.8); }
+  50% { box-shadow: 0 0 150px 15px rgba(255, 255, 255, 0.9); }
+}
+
+.lightning-effect {
+  animation: lightning-flash 1s ease;
+}
+
+@keyframes earthquake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.earthquake-effect {
+  animation: earthquake 0.8s ease;
+}
+
+/* Style pour les événements aléatoires actifs */
+.event-active {
+    position: relative;
+    animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.event-label {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, #ffdd00, #ff8c00);
+    color: black;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+    box-shadow: 0 0 8px rgba(255, 200, 0, 0.7);
+    z-index: 5;
+}
