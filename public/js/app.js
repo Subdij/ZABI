@@ -217,47 +217,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         heroImage.src = '/img/hero-default.png';
                     });
             }
-            
-            // Vider les conteneurs
-            powerstats.innerHTML = '';
-            attackContainer.innerHTML = '';
-            defenseContainer.innerHTML = ''; 
-
-            // Charger et afficher les attaques
-            fetchAttacks().then(attacks => {
-                const select = document.createElement('select');
-                select.id = `attack-select-${index}`;
-                select.className = 'attack-select';
-
-                attacks.forEach(attack => {
-                    const option = document.createElement('option');
-                    option.value = attack.name;
-                    option.textContent = `${attack.name} (${attack.pouvoir}, Modificateur: ${attack.modificateur})`;
-                    select.appendChild(option);
-                });
-
-                attackContainer.appendChild(select);
-            });
-
-            // Charger et afficher les défenses
-            fetchDefenses().then(defenses => {
-                const select = document.createElement('select');
-                select.id = `defense-select-${index}`;
-                select.className = 'defense-select';
-
-                defenses.forEach(defense => {
-                    const option = document.createElement('option');
-                    option.value = defense.name;
-                    option.textContent = `${defense.name} (${defense.pouvoir}, Modificateur: ${defense.modificateur})`;
-                    select.appendChild(option);
-                });
-
-                defenseContainer.appendChild(select);
-            });
-        } else {
-            // Si on met à jour uniquement les stats, vider seulement le conteneur des stats
-            powerstats.innerHTML = '';
         }
+        
+        // Toujours vider le conteneur des stats
+        powerstats.innerHTML = '';
 
         // Ajouter les caractéristiques (toujours mis à jour)
         if (hero.powerstats) {
@@ -335,6 +298,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Mise à jour des textes
         hpText1.textContent = `${player1HP} / ${maxHP} PV`;
         hpText2.textContent = `${player2HP} / ${maxHP} PV`;
+        
+        // Vérifier et mettre à jour la musique
+        updateBattleMusic();
         
         // Changement de couleur si PV bas
         if (p1Percentage < 25) {
@@ -619,6 +585,9 @@ boostSlot.appendChild(boostMessage);
             player2Role = 'Attaquant';
         }
         updateRoleDisplay();
+        // Créer les sélecteurs après l'attribution des rôles
+        createSelectors(1);
+        createSelectors(2);
     }
 
     // Fonction pour mettre à jour l'affichage en fonction des rôles
@@ -646,11 +615,55 @@ boostSlot.appendChild(boostMessage);
         }
     }
     
+    // Ajouter cette nouvelle fonction pour créer les sélecteurs
+    async function createSelectors(index) {
+        const isAttacker = (index === 1 ? player1Role === 'Attaquant' : player2Role === 'Attaquant');
+        const attackContainer = document.getElementById(`attack-container-${index}`);
+        const defenseContainer = document.getElementById(`defense-container-${index}`);
+        
+        // Créer le sélecteur d'attaque si c'est un attaquant
+        if (isAttacker && !document.getElementById(`attack-select-${index}`)) {
+            const attacks = await fetchAttacks();
+            const select = document.createElement('select');
+            select.id = `attack-select-${index}`;
+            select.className = 'attack-select';
+            
+            attacks.forEach(attack => {
+                const option = document.createElement('option');
+                option.value = attack.name;
+                option.textContent = `${attack.name} (${attack.pouvoir}, Modificateur: ${attack.modificateur})`;
+                select.appendChild(option);
+            });
+            
+            attackContainer.insertBefore(select, attackContainer.firstChild);
+        }
+        
+        // Créer le sélecteur de défense si c'est un défenseur
+        if (!isAttacker && !document.getElementById(`defense-select-${index}`)) {
+            const defenses = await fetchDefenses();
+            const select = document.createElement('select');
+            select.id = `defense-select-${index}`;
+            select.className = 'defense-select';
+            
+            defenses.forEach(defense => {
+                const option = document.createElement('option');
+                option.value = defense.name;
+                option.textContent = `${defense.name} (${defense.pouvoir}, Modificateur: ${defense.modificateur})`;
+                select.appendChild(option);
+            });
+            
+            defenseContainer.insertBefore(select, defenseContainer.firstChild);
+        }
+    }
 
     // Étape 1: Clic sur le bouton Play
     playBtn.addEventListener('click', () => {
         welcomeScreen.style.display = 'none';
         playersInput.style.display = 'block';
+        // Démarrer la musique lors d'une interaction utilisateur
+        menuMusic.play().catch(error => {
+            console.log("Lecture de la musique bloquée:", error);
+        });
     });
 
     // Étape 2: Confirmation des pseudos et début du combat
@@ -897,13 +910,17 @@ boostSlot.appendChild(boostMessage);
         button.textContent = 'Valider';
         button.style.display = 'none';
         
-        // Modification: Ajouter le bouton dans le conteneur approprié selon le rôle
+        // Ne pas vider les conteneurs, juste ajouter le bouton
         if ((index === 1 && player1Role === 'Attaquant') || (index === 2 && player2Role === 'Attaquant')) {
             const attackContainer = document.getElementById(`attack-container-${index}`);
-            attackContainer.appendChild(button);
+            if (!attackContainer.querySelector('.validate-action-btn')) {
+                attackContainer.appendChild(button);
+            }
         } else {
             const defenseContainer = document.getElementById(`defense-container-${index}`);
-            defenseContainer.appendChild(button);
+            if (!defenseContainer.querySelector('.validate-action-btn')) {
+                defenseContainer.appendChild(button);
+            }
         }
         
         return button;
@@ -1057,6 +1074,12 @@ boostSlot.appendChild(boostMessage);
         battleAnimation.appendChild(content);
         document.body.appendChild(battleAnimation);
 
+        // Jouer le son de combat
+        fightSound.currentTime = 0;
+        fightSound.play().catch(error => {
+            console.log("Lecture du son de combat bloquée:", error);
+        });
+
         // Attendre la fin de l'animation
         await new Promise(resolve => setTimeout(resolve, 1500));
         
@@ -1149,6 +1172,11 @@ boostSlot.appendChild(boostMessage);
                 
                 attackerChoice = attackSelect.value;
                 currentPhase = 'defender';
+                // Jouer le son d'attaque
+                attackSound.currentTime = 0;
+                attackSound.play().catch(error => {
+                    console.log("Lecture du son d'attaque bloquée:", error);
+                });
                 updatePhaseDisplay();
             };
         }
@@ -1159,6 +1187,12 @@ boostSlot.appendChild(boostMessage);
                 if (!defenseSelect || !defenseSelect.value) return;
                 
                 defenderChoice = defenseSelect.value;
+                // Jouer le son de défense
+                defenseSound.currentTime = 0;
+                defenseSound.play().catch(error => {
+                    console.log("Lecture du son de défense bloquée:", error);
+                });
+                
                 await executeTurn();
                 
                 // Réinitialiser pour le prochain tour
@@ -1180,5 +1214,102 @@ boostSlot.appendChild(boostMessage);
             };
         }
     }
+
+    // Ajouter les références audio
+    const menuMusic = document.getElementById('menuMusic');
+    const battleMusic = document.getElementById('battleMusic');
+    const lowHpMusic = document.getElementById('lowHpMusic');
+    const attackSound = document.getElementById('attackSound');
+    const defenseSound = document.getElementById('defenseSound');
+    const fightSound = document.getElementById('fightSound');
+    
+    // Régler le volume pour tous les sons
+    menuMusic.volume = 0.5;
+    battleMusic.volume = 0.5;
+    lowHpMusic.volume = 0.5;
+    attackSound.volume = 0.5;
+    defenseSound.volume = 0.5;
+    fightSound.volume = 0.5;
+
+    function updateBattleMusic() {
+        if (player1HP <= 200 || player2HP <= 200) {
+            if (battleMusic.played) {
+                battleMusic.pause();
+                battleMusic.currentTime = 0;
+            }
+            lowHpMusic.play().catch(error => {
+                console.log("Lecture de la musique low HP bloquée:", error);
+            });
+        } else {
+            if (lowHpMusic.played) {
+                lowHpMusic.pause();
+                lowHpMusic.currentTime = 0;
+            }
+            battleMusic.play().catch(error => {
+                console.log("Lecture de la musique de combat bloquée:", error);
+            });
+        }
+    }
+
+    // Modifier l'event listener du startBattleBtn
+    startBattleBtn.addEventListener('click', async () => {
+        // Arrêter la musique du menu et démarrer la musique de combat
+        menuMusic.pause();
+        menuMusic.currentTime = 0;
+        battleMusic.play().catch(error => {
+            console.log("Lecture de la musique de combat bloquée:", error);
+        });
+
+        player1Name = player1NameInput.value.trim() || "Joueur 1";
+        player2Name = player2NameInput.value.trim() || "Joueur 2";
+        
+        // Réinitialiser les PV
+        player1HP = maxHP;
+        player2HP = maxHP;
+        updateHPBars();
+
+        playersInput.style.display = 'none';
+
+        player1Display.textContent = player1Name;
+        player2Display.textContent = player2Name;
+
+        document.getElementById('hero-name-1').textContent = 'Chargement...';
+        document.getElementById('hero-name-2').textContent = 'Chargement...';
+        document.getElementById('powerstats-1').innerHTML = '';
+        document.getElementById('powerstats-2').innerHTML = '';
+
+        battleContainer.style.display = 'flex';
+
+        const [hero1, hero2] = await Promise.all([
+            fetchHeroWithRetry(),
+            fetchHeroWithRetry()
+        ]);
+
+        displayHeroInBattle(hero1, 1);
+        displayHeroInBattle(hero2, 2);
+        
+        // Analyser l'équilibre du combat
+        analyzeMatchup(hero1, hero2);
+
+        assignRoles(); // Attribuer les rôles au début du combat
+        preloadNextHeroes(5);
+
+        // Afficher le bouton "Changer de rôle" et le compteur de tour une fois le combat commencé
+        roleSwitchBtn.style.display = 'block';
+        turnCounterDisplay.style.display = 'block';
+
+        // Afficher le bouton "Historique" une fois le combat commencé
+        historyBtn.style.display = 'block';
+
+        // Créer les boutons de validation pour chaque joueur
+        createValidationButton(1);
+        createValidationButton(2);
+        
+        // Initialiser l'interface pour le premier tour
+        updatePhaseDisplay();
+        
+        // Ajouter cette ligne pour initialiser les listeners
+        setupValidationListeners();
+    });
 
 });
